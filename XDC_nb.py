@@ -115,6 +115,33 @@ def find_dataset_type(start_date,end_date,typ,onedata_token):
         #print('-------------')
     return result
 
+def find_models(onedata_token):
+    headers = {"X-Auth-Token": onedata_token}
+    url = 'https://cloud-90-147-75-163.cloud.ba.infn.it/api/v3/oneprovider/spaces/17d670040b30511bc4848cab56449088'
+    r = requests.get(url, headers=headers)
+    space_id = json.loads(r.content)['spaceId']
+    print('Onedata space ID: %s' % space_id)
+    index_name = 'region'
+    onedata_cdmi_api = 'https://cloud-90-147-75-163.cloud.ba.infn.it/cdmi/cdmi_objectid/'
+    url = 'https://cloud-90-147-75-163.cloud.ba.infn.it/api/v3/oneprovider/spaces/'+space_id+'/indexes/'+index_name+'/query'
+    r = requests.get(url, headers=headers)
+    response = json.loads(r.content)
+    headers = {'X-Auth-Token': onedata_token, 'X-CDMI-Specification-Version': '1.1.1'}
+    result = []
+    for e in response:
+        #print(e['id'])
+        #print('-------------')
+        res = requests.get(onedata_cdmi_api+e['value'],headers=headers)
+        element = json.loads(res.content)
+    
+        try:
+            if 'model' in element['metadata']['onedata_json']['eml:eml']['dataset']['comment']:
+                result.append({'model_output': element['metadata']['onedata_json']['eml:eml']['dataset']['title'], 'beginDate': element['metadata']['onedata_json']['eml:eml']['dataset']['coverage']['temporalCoverage']['rangeOfDates']['beginDate']['calendarDate'], 'endDate': element['metadata']['onedata_json']['eml:eml']['dataset']['coverage']['temporalCoverage']['rangeOfDates']['endDate']['calendarDate']})
+        except:
+            pass
+    
+    return result
+
 def check_date(start_date, end_date, meta_beginDate, meta_endDate):
     meta_start_date = parser.parse(meta_beginDate)
     meta_end_date = parser.parse(meta_endDate)
@@ -139,9 +166,13 @@ def prepare_model(start_date, end_date, region, path):
     end_date_str = end_date.strftime('%Y-%m-%d')+' 00:00:00'
     
     print("Generating new model"+'/model_'+start_date.strftime('%Y-%m-%d')+'_'+end_date.strftime('%Y-%m-%d')+'/')
-    shutil.copytree(path+region+'/model', path+region+'/model_'+start_date.strftime('%Y-%m-%d')+'_'+end_date.strftime('%Y-%m-%d')+'/')
+    try:
+        shutil.copytree(path+region+'/model', path+region+'/model_'+start_date.strftime('%Y-%m-%d')+'_'+end_date.strftime('%Y-%m-%d')+'/')
+        
+    except FileExistsError:
+        shutil.rmtree(path+region+'/model_'+start_date.strftime('%Y-%m-%d')+'_'+end_date.strftime('%Y-%m-%d')+'/')
+        shutil.copytree(path+region+'/model', path+region+'/model_'+start_date.strftime('%Y-%m-%d')+'_'+end_date.strftime('%Y-%m-%d')+'/')
     base_path = path+region+'/model_'+start_date.strftime('%Y-%m-%d')+'_'+end_date.strftime('%Y-%m-%d')+'/'
-
     fmt = '%Y-%m-%d %H:%M:%S'
     ini_date = datetime.strptime(ini_date_str, fmt)
     end_date = datetime.strptime(end_date_str, fmt)    
@@ -240,8 +271,13 @@ def prepare_model(start_date, end_date, region, path):
     #f2 = open(base_path+'test_1_v2.mdf','w')
     os.rename(base_path+'test_1.mdf', base_path+'test_old.mdf')
     os.rename(base_path+'test_1_v2.mdf',base_path+'test_1.mdf')
-    print("PaaS Orchestrator disconnected. Run the model manually")
-    return path+region+'/model_'+start_date.strftime('%Y-%m-%d')+'_'+end_date.strftime('%Y-%m-%d')+'/'
+    try:
+        deployment_id = launch_orchestrator_job('hydro',region+'/model_'+start_date.strftime('%Y-%m-%d')+'_'+end_date.strftime('%Y-%m-%d')+'/')
+    except:
+        print("PaaS Orchestrator disconnected. Run the model manually")
+        return path+region+'/model_'+start_date.strftime('%Y-%m-%d')+'_'+end_date.strftime('%Y-%m-%d')+'/'
+    
+    return deployment_id
     
 def temp_map(file, ini_date, end_date, z):
 
@@ -264,3 +300,80 @@ def temp_map(file, ini_date, end_date, z):
         plt.ylabel('lat')
         plt.title("Map Temp {}, prof = {} meters".format(end_date, z))
         plt.show()
+        
+def get_access_token(url):
+    if url is None:
+        url = 'https://iam.extreme-datacloud.eu/token'
+    #TODO manage exceptions
+    access_token = os.environ['OAUTH2_AUTHORIZE_TOKEN']
+    refresh_token = os.environ['OAUTH2_REFRESH_TOKEN']
+
+    IAM_CLIENT_ID = os.environ['IAM_CLIENT_ID']
+    IAM_CLIENT_SECRET = os.environ['IAM_CLIENT_SECRET']
+
+    data = {'refresh_token': refresh_token, 'grant_type': 'refresh_token', 'client_id':IAM_CLIENT_ID, 'client_secret':IAM_CLIENT_SECRET}
+    headers = {'Content-Type': 'application/json'}
+    url = url+"?grant_type=refresh_token&refresh_token="+refresh_token+'&client_id='+IAM_CLIENT_ID+'&client_secret='+IAM_CLIENT_SECRET
+
+    r = requests.post(url, headers=headers) #GET token
+    print("Rquesting access token: %s" % r.status_code) #200 means that the resource exists
+    access_token = json.loads(r.content)['access_token']
+    return access_token
+
+def launch_orchestrator_job(model_type,model_path):
+    
+    access_token = get_access_token('https://iam.extreme-datacloud.eu/token')
+
+    headers = {'Content-Type': 'application/json', 'Authorization': 'Bearer '+access_token}
+    
+    tosca_file = ''
+    if model_type == 'hydro':
+        tosca_file = ".HY_MODEL.yml"
+    
+    with open(tosca_file, 'r') as myfile:
+        tosca = myfile.read()
+
+    data = {"parameters" : {   
+                "cpus" : 1,
+                "mem" : "4096 MB",
+                "onedata_provider" : "cloud-90-147-75-163.cloud.ba.infn.it",
+                "model_space_name" : "LifeWatch",
+                "model_path" : model_path,
+                "output_filenames" : "trim-test_1.nc",
+                "onedata_zone" : "https://onezone.cloud.cnaf.infn.it",
+                "input_config_file" : "config_d_hydro.xml"
+                 },
+            "template" : tosca
+            }
+
+    url = 'https://xdc-paas.cloud.ba.infn.it/orchestrator/deployments/'
+    r = requests.post(url, headers=headers,data=json.dumps(data)) #GET
+    print("Status code: %s" % r.status_code) #200 means that the resource exists
+    print(r.headers)
+    print(r.text)
+    print(r.reason)
+    deployment_id = json.loads(r.content)['uuid']
+    print("Deployment ID: %s" % deployment_id)
+    return deployment_id
+    
+def orchestrator_job_status(deployment_id):
+    #TODO manage exceptions
+    access_token = get_access_token('https://iam.extreme-datacloud.eu/token')
+    url =  'https://xdc-paas.cloud.ba.infn.it/orchestrator/deployments/'+deployment_id
+    headers = {'Content-Type': 'application/json', 'Authorization': 'Bearer '+access_token}
+    r = requests.get(url, headers=headers) #GET token
+    print("Status code: %s" % r.status_code)
+    print(r.text)
+    print(r.reason)
+    return r.content
+
+def orchestrator_list_deployments(orchestrator_url):
+    #TODO manage exceptions
+    access_token = get_access_token('https://iam.extreme-datacloud.eu/token')
+    if orchestrator_url is None:
+        orchestrator_url = 'https://xdc-paas.cloud.ba.infn.it/orchestrator/'
+    
+    url = orchestrator_url + 'deployments?createdBy=' + os.environ['JUPYTERHUB_USER'] + '@https://iam.extreme-datacloud.eu/'
+    headers = {'Content-Type': 'application/json', 'Authorization': 'Bearer '+access_token}
+    r = requests.get(url, headers=headers) #GET
+    return json.loads(r.content)['content']
