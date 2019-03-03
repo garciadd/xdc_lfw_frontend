@@ -121,7 +121,7 @@ def find_models(onedata_token):
     r = requests.get(url, headers=headers)
     space_id = json.loads(r.content)['spaceId']
     print('Onedata space ID: %s' % space_id)
-    index_name = 'region'
+    index_name = 'models_region_query'
     onedata_cdmi_api = 'https://cloud-90-147-75-163.cloud.ba.infn.it/cdmi/cdmi_objectid/'
     url = 'https://cloud-90-147-75-163.cloud.ba.infn.it/api/v3/oneprovider/spaces/'+space_id+'/indexes/'+index_name+'/query'
     r = requests.get(url, headers=headers)
@@ -135,8 +135,7 @@ def find_models(onedata_token):
         element = json.loads(res.content)
     
         try:
-            if 'model' in element['metadata']['onedata_json']['eml:eml']['dataset']['comment']:
-                result.append({'model_output': element['metadata']['onedata_json']['eml:eml']['dataset']['title'], 'beginDate': element['metadata']['onedata_json']['eml:eml']['dataset']['coverage']['temporalCoverage']['rangeOfDates']['beginDate']['calendarDate'], 'endDate': element['metadata']['onedata_json']['eml:eml']['dataset']['coverage']['temporalCoverage']['rangeOfDates']['endDate']['calendarDate']})
+            result.append({'model_output': element['metadata']['onedata_json']['eml:eml']['dataset']['title'], 'beginDate': element['metadata']['onedata_json']['eml:eml']['dataset']['coverage']['temporalCoverage']['rangeOfDates']['beginDate']['calendarDate'], 'endDate': element['metadata']['onedata_json']['eml:eml']['dataset']['coverage']['temporalCoverage']['rangeOfDates']['endDate']['calendarDate']})
         except:
             pass
     
