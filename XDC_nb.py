@@ -120,26 +120,26 @@ def find_models(onedata_token):
     url = 'https://cloud-90-147-75-163.cloud.ba.infn.it/api/v3/oneprovider/spaces/17d670040b30511bc4848cab56449088'
     r = requests.get(url, headers=headers)
     space_id = json.loads(r.content)['spaceId']
-    print('Onedata space ID: %s' % space_id)
+    print('Searching models')
     index_name = 'models_region_query'
     onedata_cdmi_api = 'https://cloud-90-147-75-163.cloud.ba.infn.it/cdmi/cdmi_objectid/'
     url = 'https://cloud-90-147-75-163.cloud.ba.infn.it/api/v3/oneprovider/spaces/'+space_id+'/indexes/'+index_name+'/query'
     r = requests.get(url, headers=headers)
     response = json.loads(r.content)
-    headers = {'X-Auth-Token': onedata_token, 'X-CDMI-Specification-Version': '1.1.1'}
-    result = []
-    for e in response:
+    #headers = {'X-Auth-Token': onedata_token, 'X-CDMI-Specification-Version': '1.1.1'}
+    #result = []
+    #for e in response:
         #print(e['id'])
         #print('-------------')
-        res = requests.get(onedata_cdmi_api+e['value'],headers=headers)
-        element = json.loads(res.content)
+     #   res = requests.get(onedata_cdmi_api+e['value'],headers=headers)
+     #   element = json.loads(res.content)
     
-        try:
-            result.append({'model_output': element['metadata']['onedata_json']['eml:eml']['dataset']['title'], 'beginDate': element['metadata']['onedata_json']['eml:eml']['dataset']['coverage']['temporalCoverage']['rangeOfDates']['beginDate']['calendarDate'], 'endDate': element['metadata']['onedata_json']['eml:eml']['dataset']['coverage']['temporalCoverage']['rangeOfDates']['endDate']['calendarDate']})
-        except:
-            pass
+     #   try:
+      #      result.append({'model_output': element['metadata']['onedata_json']['eml:eml']['dataset']['title'], 'beginDate': element['metadata']['onedata_json']['eml:eml']['dataset']['coverage']['temporalCoverage']['rangeOfDates']['beginDate']['calendarDate'], 'endDate': element['metadata']['onedata_json']['eml:eml']['dataset']['coverage']['temporalCoverage']['rangeOfDates']['endDate']['calendarDate']})
+      #  except:
+      #      pass
     
-    return result
+    return response
 
 def check_date(start_date, end_date, meta_beginDate, meta_endDate):
     meta_start_date = parser.parse(meta_beginDate)
