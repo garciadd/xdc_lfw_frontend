@@ -49,7 +49,6 @@ def plot_meteo(region_buttons, ini_date, end_date, actions):
 def plot_satellite(region_buttons, ini_date, end_date, actions):
 
     #Check the format date and if end_date > start_date
-    print(type(ini_date.value))
     st_date = ini_date.value
     ed_date = end_date.value
     sd, ed = utils.valid_date(st_date, ed_date)
@@ -80,7 +79,6 @@ def plot_satellite(region_buttons, ini_date, end_date, actions):
         landsat_files = l.__dict__['output']
 
         if onedata_mode == 1:
-            utils.to_onedata(sentinel_files, landsat_files, region)
             utils.clean_temporal_path()
 
         if act == 'water_mask' or act == 'water_surface':
