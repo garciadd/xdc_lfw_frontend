@@ -95,21 +95,18 @@ def find_dataset_type(start_date,end_date,typ,onedata_token):
     r = requests.get(url, headers=headers)
     space_id = json.loads(r.content)['spaceId']
     print('Onedata space ID: %s' % space_id)
-    index_name = 'region'
+    index_name = 'region_type__query'
     onedata_cdmi_api = 'https://cloud-90-147-75-163.cloud.ba.infn.it/cdmi/cdmi_objectid/'
     url = 'https://cloud-90-147-75-163.cloud.ba.infn.it/api/v3/oneprovider/spaces/'+space_id+'/indexes/'+index_name+'/query'
     r = requests.get(url, headers=headers)
     response = json.loads(r.content)
-    headers = {'X-Auth-Token': onedata_token, 'X-CDMI-Specification-Version': '1.1.1'}
     result = []
     for e in response:
         #print(e['id'])
         #print('-------------')
-        res = requests.get(onedata_cdmi_api+e['value'],headers=headers)
-        element = json.loads(res.content)
-        if typ in element['objectName'] and check_date(start_date,end_date,element['metadata']['onedata_json']['eml:eml']['dataset']['coverage']['temporalCoverage']['rangeOfDates']['beginDate']['calendarDate'], element['metadata']['onedata_json']['eml:eml']['dataset']['coverage']['temporalCoverage']['rangeOfDates']['endDate']['calendarDate']):
-            print({'beginDate': element['metadata']['onedata_json']['eml:eml']['dataset']['coverage']['temporalCoverage']['rangeOfDates']['beginDate']['calendarDate'], 'endDate': element['metadata']['onedata_json']['eml:eml']['dataset']['coverage']['temporalCoverage']['rangeOfDates']['endDate']['calendarDate'], 'file':element['parentURI']+element['objectName']})
-            result.append({'beginDate': element['metadata']['onedata_json']['eml:eml']['dataset']['coverage']['temporalCoverage']['rangeOfDates']['beginDate']['calendarDate'], 'endDate': element['metadata']['onedata_json']['eml:eml']['dataset']['coverage']['temporalCoverage']['rangeOfDates']['endDate']['calendarDate'], 'file':element['parentURI']+element['objectName']})
+        if typ in e['key']['dataset'] and check_date(start_date,end_date,e['key']['beginDate'], e['key']['endDate']):
+            print({'beginDate': e['key']['beginDate'], 'endDate': e['key']['endDate'], 'file':e['key']['dataset']})
+            result.append({'beginDate': e['key']['beginDate'], 'endDate': e['key']['endDate'], 'file':e['key']['dataset']})
         #print('-------------')
     return result
 
@@ -360,7 +357,12 @@ def orchestrator_job_status(deployment_id):
     headers = {'Content-Type': 'application/json', 'Authorization': 'Bearer '+access_token}
     r = requests.get(url, headers=headers) #GET token
     print("Status code: %s" % r.status_code)
-    print(r.text)
+    txt = json.loads(r.text)
+    print (json.dumps(txt, indent=2, sort_keys=True))
+    #print(r.text)
+    #reason = json.loads(r.reason)
+    #print (json.dumps(reason, indent=3, sort_keys=True))
+    print (type(r.reason))
     print(r.reason)
     return r.content
 
