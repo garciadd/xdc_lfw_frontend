@@ -315,15 +315,14 @@ def get_access_token(url):
     return access_token
 
 def launch_orchestrator_job(model_type,model_path):
-    
-    access_token = get_access_token('https://iam.extreme-datacloud.eu/token')
 
+    access_token = get_access_token('https://iam.extreme-datacloud.eu/token')
     headers = {'Content-Type': 'application/json', 'Authorization': 'Bearer '+access_token}
-    
+
     tosca_file = ''
     if model_type == 'hydro':
         tosca_file = ".HY_MODEL.yml"
-    
+
     with open(tosca_file, 'r') as myfile:
         tosca = myfile.read()
 
@@ -344,8 +343,10 @@ def launch_orchestrator_job(model_type,model_path):
     r = requests.post(url, headers=headers,data=json.dumps(data)) #GET
     print("Status code: %s" % r.status_code) #200 means that the resource exists
     print(r.headers)
-    print(r.text)
-    print(r.reason)
+    txt = json.loads(r.text)
+    print (json.dumps(txt, indent=2, sort_keys=True))
+    #print(r.text)
+    #print(r.reason)
     deployment_id = json.loads(r.content)['uuid']
     print("Deployment ID: %s" % deployment_id)
     return deployment_id
@@ -360,10 +361,7 @@ def orchestrator_job_status(deployment_id):
     txt = json.loads(r.text)
     print (json.dumps(txt, indent=2, sort_keys=True))
     #print(r.text)
-    #reason = json.loads(r.reason)
-    #print (json.dumps(reason, indent=3, sort_keys=True))
-    print (type(r.reason))
-    print(r.reason)
+    #print(r.reason)
     return r.content
 
 def orchestrator_list_deployments(orchestrator_url):
