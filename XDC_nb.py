@@ -265,6 +265,57 @@ def prepare_model(start_date, end_date, region, path):
     #f2 = open(base_path+'test_1_v2.mdf','w')
     os.rename(base_path+'test_1.mdf', base_path+'test_old.mdf')
     os.rename(base_path+'test_1_v2.mdf',base_path+'test_1.mdf')
+    
+    # WATER QUALITY
+    ini_date_str = start_date.strftime('%Y/%m/%d') + '-00:00:00'
+    end_date_str = end_date.strftime('%Y/%m/%d')+'-00:00:00'
+
+
+    q1 = open(base_path+'test_1.inp','r')
+    q2 = open(base_path+'test_1_v2.inp','w')
+
+    #TODO 
+    wind_data = ini_date_str + '  2.55\n' + end_date_str + '  1.55\n'
+    rad_data = ini_date_str + '  255.5\n' + end_date_str + '  155.5\n'
+
+
+    #Layers
+    k = 35
+    #Check Wind file
+    print("Searching Wind data")
+    print("Getting data")
+    wind_block = False
+    rad_block = False
+    for line in q1:
+        if wind_block==False and rad_block==False:
+            if '2012.01.02 00:00:00' in line:
+                line = line.replace('2012.01.02',start_date.strftime('%Y')+'.'+start_date.strftime('%m') + '.' + start_date.strftime('%d'))
+            if '2012/01/02-00:00:00' in line:
+                line = line.replace('2012/01/02-00:00:00',ini_date_str)
+            if '2012/01/05-00:00:00' in line:
+                line = line.replace('2012/01/05-00:00:00',end_date_str)
+            q2.write(line)
+            if '; wind_start' in line:
+                wind_block = True
+                q2.write(wind_data)
+            if '; rad_start' in line:
+                wind_block = True
+                q2.write(rad_data)
+        elif wind_block:
+            if '; wind_end' in line:
+                q2.write(line)
+                wind_block = False
+        elif rad_block:
+            if '; rad_end' in line:
+                q2.write(line)
+                rad_block = False
+
+    q1.close()
+    q2.close()
+
+    os.rename(base_path+'test_1.inp', base_path+'test_old.inp')
+    os.rename(base_path+'test_1_v2.inp',base_path+'test_1.inp')
+    
     try:
         deployment_id = launch_orchestrator_job('hydro',region+'/model_'+start_date.strftime('%Y-%m-%d')+'_'+end_date.strftime('%Y-%m-%d')+'/')
     except:
