@@ -254,6 +254,7 @@ def prepare_model(start_date, end_date, region, path):
            'FilbcT': "#" + presa_bct + "#\n",
            'FilbcC':"#" + presa_bcc + "#\n",
            'Fildis': "#" + input_dis + "#\n",
+           'Flmap' : "0 360 %i" % modeling_file.minutes_between_date(ini_date,end_date),
            'Zeta0' : "0\n"
           }
     #Update params
