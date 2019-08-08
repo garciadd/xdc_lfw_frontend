@@ -36,8 +36,9 @@ def plot_meteo(region_buttons, ini_date, end_date, actions):
     #datetime.strptime(ini_date.value, "%m-%d-%Y")
     ed = end_date.value
     m = meteo.Meteo(sd, ed, region)
+    m.params = ["ID","Date","Temp"]
     meteo_output = m.get_meteo()
-    data = pd.read_csv(meteo_output['output'],delimiter=',',decimal=',')
+    data = pd.read_csv(meteo_output['output'],delimiter=';',decimal=',')
     data['Date'] = pd.to_datetime(data['Date'])
     #data["Temp"] = float(data["Temp"])
     data
@@ -102,12 +103,11 @@ def find_dataset_type(start_date,end_date,typ,onedata_token):
     response = json.loads(r.content)
     result = []
     for e in response:
-        #print(e['id'])
-        #print('-------------')
-        if typ in e['key']['dataset'] and check_date(start_date,end_date,e['key']['beginDate'], e['key']['endDate']):
-            print({'beginDate': e['key']['beginDate'], 'endDate': e['key']['endDate'], 'file':e['key']['dataset']})
-            result.append({'beginDate': e['key']['beginDate'], 'endDate': e['key']['endDate'], 'file':e['key']['dataset']})
-        #print('-------------')
+        if typ in e['key']['dataset']:
+            print(e['key']['dataset'])
+            if check_date(start_date,end_date,e['key']['beginDate'], e['key']['endDate']):
+                print({'beginDate': e['key']['beginDate'], 'endDate': e['key']['endDate'], 'file':e['key']['dataset']})
+                result.append({'beginDate': e['key']['beginDate'], 'endDate': e['key']['endDate'], 'file':e['key']['dataset']})
     return result
 
 def find_models(onedata_token):
@@ -140,7 +140,7 @@ def check_date(start_date, end_date, meta_beginDate, meta_endDate):
     meta_start_date = parser.parse(meta_beginDate)
     meta_end_date = parser.parse(meta_endDate)
     try:
-        #print("Selected [start: %s end: %s ] | Metadata: [start: %s end: %s]" % (start_date,end_date, meta_start_date, meta_endDate))
+        print("Selected [start: %s end: %s ] | Metadata: [start: %s end: %s]" % (start_date,end_date, meta_start_date, meta_end_date))
         if meta_start_date.date() <= start_date and meta_end_date.date() >= end_date:
             print("Candidate File")
             return True
@@ -154,7 +154,7 @@ def check_date(start_date, end_date, meta_beginDate, meta_endDate):
         return False
    
    
-def prepare_model(start_date, end_date, region, path):
+def prepare_model(start_date, end_date, region, path,onedata_token):
      #Parameters
     ini_date_str = start_date.strftime('%Y-%m-%d')+' 00:00:00'
     end_date_str = end_date.strftime('%Y-%m-%d')+' 00:00:00'
@@ -180,11 +180,23 @@ def prepare_model(start_date, end_date, region, path):
     print(modeling_file.minutes_between_date(ini_date,end_date))
 
     #Check Wind file
-    print("Searching Wind data")
-    print("Getting data")
-    #TODO
+    
+    wind_input = ''
+    #Search once. If it is not found, it tries to download the data
     try:
-        wind_input = '/home/jovyan/datasets'+find_dataset_type(ini_date.date(),end_date.date(),'wind')[0]["file"]
+        print("Searching Wind data")
+        wind_input = '/home/jovyan/datasets'+find_dataset_type(ini_date.date(),end_date.date(),'wind',onedata_token)[0]["file"]
+    except Exception as e:
+        print(e)
+        print("Getting data")
+        m = meteo.Meteo(ini_date.date(), end_date.date(), region)
+        m.params = ["ID","date","speed","dir"]
+        wind_input = m.get_meteo()['output']
+    #Second time. If it is not found, it generates a generic file.
+    try:
+        if wind_input == '':
+            print("Searching Wind data again")
+            wind_input = '/home/jovyan/datasets/LifeWatch/'+ region + '/' + find_dataset_type(ini_date.date(),end_date.date(),'wind',onedata_token)[0]["file"]
     except:
         wf = open(base_path+'wind_generic.csv','w')
         line = "date;speed;dir\n\"%s\";2.72;277\n\"%s\";2.72;277\n" % (ini_date_str, end_date_str)
@@ -192,7 +204,7 @@ def prepare_model(start_date, end_date, region, path):
         wf.close()
         wind_input = base_path+'wind_generic.csv'
         
-    print("Creating file .wnd")
+    print("Creating file .wnd from CSV: %s" % wind_input)
     wind_file_name = "wind_"+ini_date.strftime('%Y-%m-%d%H%M%S')+"_"+end_date.strftime('%Y-%m-%d%H%M%S')+".wnd"
     modeling_file.csv_to_wind(wind_input, ini_date, end_date, base_path+wind_file_name)
     print("Wind file created: %s" % wind_file_name)
@@ -253,7 +265,7 @@ def prepare_model(start_date, end_date, region, path):
            'Filtmp': "#" + rad_file_name + "#\n",
            'FilbcT': "#" + presa_bct + "#\n",
            'FilbcC':"#" + presa_bcc + "#\n",
-           'Fildis': "#" + input_dis + "#\n",
+           'Fildis': "#" + input_dis + "#\n",           
            'Flmap' : "0 360 %i" % modeling_file.minutes_between_date(ini_date,end_date),
            'Zeta0' : "0\n"
           }
@@ -266,57 +278,6 @@ def prepare_model(start_date, end_date, region, path):
     #f2 = open(base_path+'test_1_v2.mdf','w')
     os.rename(base_path+'test_1.mdf', base_path+'test_old.mdf')
     os.rename(base_path+'test_1_v2.mdf',base_path+'test_1.mdf')
-    
-    # WATER QUALITY
-    ini_date_str = start_date.strftime('%Y/%m/%d') + '-00:00:00'
-    end_date_str = end_date.strftime('%Y/%m/%d')+'-00:00:00'
-
-
-    q1 = open(base_path+'test_1.inp','r')
-    q2 = open(base_path+'test_1_v2.inp','w')
-
-    #TODO 
-    wind_data = ini_date_str + '  2.55\n' + end_date_str + '  1.55\n'
-    rad_data = ini_date_str + '  255.5\n' + end_date_str + '  155.5\n'
-
-
-    #Layers
-    k = 35
-    #Check Wind file
-    print("Searching Wind data")
-    print("Getting data")
-    wind_block = False
-    rad_block = False
-    for line in q1:
-        if wind_block==False and rad_block==False:
-            if '2012.01.02 00:00:00' in line:
-                line = line.replace('2012.01.02',start_date.strftime('%Y')+'.'+start_date.strftime('%m') + '.' + start_date.strftime('%d'))
-            if '2012/01/02-00:00:00' in line:
-                line = line.replace('2012/01/02-00:00:00',ini_date_str)
-            if '2012/01/05-00:00:00' in line:
-                line = line.replace('2012/01/05-00:00:00',end_date_str)
-            q2.write(line)
-            if '; wind_start' in line:
-                wind_block = True
-                q2.write(wind_data)
-            if '; rad_start' in line:
-                wind_block = True
-                q2.write(rad_data)
-        elif wind_block:
-            if '; wind_end' in line:
-                q2.write(line)
-                wind_block = False
-        elif rad_block:
-            if '; rad_end' in line:
-                q2.write(line)
-                rad_block = False
-
-    q1.close()
-    q2.close()
-
-    os.rename(base_path+'test_1.inp', base_path+'test_old.inp')
-    os.rename(base_path+'test_1_v2.inp',base_path+'test_1.inp')
-    
     try:
         deployment_id = launch_orchestrator_job('hydro',region+'/model_'+start_date.strftime('%Y-%m-%d')+'_'+end_date.strftime('%Y-%m-%d')+'/')
     except:
