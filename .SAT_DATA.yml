@@ -70,7 +70,7 @@ topology_template:
       type: tosca.nodes.indigo.Container.Application.Docker.Chronos
       properties:
         description: 'Execute Application'
-        command: 'cd $MESOS_SANDBOX && wget https://raw.githubusercontent.com/ferag/xdc_tmp/master/run_model.sh && /bin/bash run_model.sh'
+        command: 'wget https://raw.githubusercontent.com/IFCA/Dockerfile_sat/master/job.sh && /bin/bash job.sh'
         uris: []
         retries: 3
         environment_variables:
