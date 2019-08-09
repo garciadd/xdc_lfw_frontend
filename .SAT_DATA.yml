@@ -18,6 +18,11 @@ topology_template:
       type: string
       description: Onezone URL
       required: yes
+      
+    model_space_name:
+      type: string
+      description: Onedata space where the model is stored
+      required: yes
 
     sat_space_name:
       type: string
