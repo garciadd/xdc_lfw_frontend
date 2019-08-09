@@ -105,11 +105,11 @@ topology_template:
       type: tosca.nodes.indigo.OnedataSpace
       properties:
         onezone: { get_input: onedata_zone }
-        space: { get_input: model_space_name }
+        space: { get_input: sat_space_name }
         
 
     output_onedata_space:
       type: tosca.nodes.indigo.OnedataSpace
       properties:
         onezone: { get_input: onedata_zone }
-        space: { get_input: model_space_name }
+        space: { get_input: sat_space_name }
