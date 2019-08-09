@@ -82,7 +82,7 @@ topology_template:
           END_DATE: { get_input: start_date}
           REGION: { get_input: region}
           SAT: { get_input: sat}
-          SAT_PATH: { get_input: output_filenames }
+          SAT_PATH: { get_input: sat_path }
       artifacts:
         image:
           file: 'garciadd/xdc_lfw_sat' 
