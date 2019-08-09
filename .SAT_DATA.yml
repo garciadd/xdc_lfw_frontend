@@ -19,11 +19,6 @@ topology_template:
       description: Onezone URL
       required: yes
       
-    model_space_name:
-      type: string
-      description: Onedata space where the model is stored
-      required: yes
-
     sat_space_name:
       type: string
       description: Onedata space where the model is stored
@@ -82,7 +77,7 @@ topology_template:
         
           INPUT_ONEDATA_TOKEN: { get_attribute : [ input_onedata_space, token ] }
           ONEDATA_PROVIDERS: { get_input : onedata_provider }
-          ONEDATA_SPACE: { get_input: model_space_name }
+          ONEDATA_SPACE: { get_input: sat_space_name }
           START_DATE: { get_input: start_date}
           END_DATE: { get_input: start_date}
           REGION: { get_input: region}
