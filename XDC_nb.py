@@ -587,7 +587,7 @@ depth_wid = widgets.IntSlider(
     readout=True,
     readout_format='d'
 )
-button = widgets.Button(
+button3 = widgets.Button(
     description='Show model output',
 )
 
