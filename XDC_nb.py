@@ -26,7 +26,7 @@ from wq_modules import config
 
 #widget
 import ipywidgets as widgets
-from ipywidgets import HBox, VBox, Layout
+from ipywidgets import HBox, VBox
 from IPython.display import display
 from IPython.display import clear_output
 
@@ -36,9 +36,8 @@ def plot_meteo(region_buttons, ini_date, end_date, actions):
     #datetime.strptime(ini_date.value, "%m-%d-%Y")
     ed = end_date.value
     m = meteo.Meteo(sd, ed, region)
-    m.params = ["ID","Date","Temp"]
     meteo_output = m.get_meteo()
-    data = pd.read_csv(meteo_output['output'],delimiter=';',decimal=',')
+    data = pd.read_csv(meteo_output['output'],delimiter=',',decimal=',')
     data['Date'] = pd.to_datetime(data['Date'])
     #data["Temp"] = float(data["Temp"])
     data
@@ -103,11 +102,12 @@ def find_dataset_type(start_date,end_date,typ,onedata_token):
     response = json.loads(r.content)
     result = []
     for e in response:
-        if typ in e['key']['dataset']:
-            print(e['key']['dataset'])
-            if check_date(start_date,end_date,e['key']['beginDate'], e['key']['endDate']):
-                print({'beginDate': e['key']['beginDate'], 'endDate': e['key']['endDate'], 'file':e['key']['dataset']})
-                result.append({'beginDate': e['key']['beginDate'], 'endDate': e['key']['endDate'], 'file':e['key']['dataset']})
+        #print(e['id'])
+        #print('-------------')
+        if typ in e['key']['dataset'] and check_date(start_date,end_date,e['key']['beginDate'], e['key']['endDate']):
+            print({'beginDate': e['key']['beginDate'], 'endDate': e['key']['endDate'], 'file':e['key']['dataset']})
+            result.append({'beginDate': e['key']['beginDate'], 'endDate': e['key']['endDate'], 'file':e['key']['dataset']})
+        #print('-------------')
     return result
 
 def find_models(onedata_token):
@@ -140,7 +140,7 @@ def check_date(start_date, end_date, meta_beginDate, meta_endDate):
     meta_start_date = parser.parse(meta_beginDate)
     meta_end_date = parser.parse(meta_endDate)
     try:
-        print("Selected [start: %s end: %s ] | Metadata: [start: %s end: %s]" % (start_date,end_date, meta_start_date, meta_end_date))
+        #print("Selected [start: %s end: %s ] | Metadata: [start: %s end: %s]" % (start_date,end_date, meta_start_date, meta_endDate))
         if meta_start_date.date() <= start_date and meta_end_date.date() >= end_date:
             print("Candidate File")
             return True
@@ -154,7 +154,7 @@ def check_date(start_date, end_date, meta_beginDate, meta_endDate):
         return False
    
    
-def prepare_model(start_date, end_date, region, path,onedata_token):
+def prepare_model(start_date, end_date, region, path):
      #Parameters
     ini_date_str = start_date.strftime('%Y-%m-%d')+' 00:00:00'
     end_date_str = end_date.strftime('%Y-%m-%d')+' 00:00:00'
@@ -180,23 +180,11 @@ def prepare_model(start_date, end_date, region, path,onedata_token):
     print(modeling_file.minutes_between_date(ini_date,end_date))
 
     #Check Wind file
-    
-    wind_input = ''
-    #Search once. If it is not found, it tries to download the data
+    print("Searching Wind data")
+    print("Getting data")
+    #TODO
     try:
-        print("Searching Wind data")
-        wind_input = '/home/jovyan/datasets/LifeWatch/'+region+'/'+find_dataset_type(ini_date.date(),end_date.date(),'wind',onedata_token)[0]["file"]
-    except Exception as e:
-        print(e)
-        print("Getting data")
-        m = meteo.Meteo(ini_date.date(), end_date.date(), region)
-        m.params = ["ID","date","speed","dir"]
-        wind_input = m.get_meteo()['output']
-    #Second time. If it is not found, it generates a generic file.
-    try:
-        if wind_input == '':
-            print("Searching Wind data again")
-            wind_input = '/home/jovyan/datasets/LifeWatch/'+ region + '/' + find_dataset_type(ini_date.date(),end_date.date(),'wind',onedata_token)[0]["file"]
+        wind_input = '/home/jovyan/datasets'+find_dataset_type(ini_date.date(),end_date.date(),'wind')[0]["file"]
     except:
         wf = open(base_path+'wind_generic.csv','w')
         line = "date;speed;dir\n\"%s\";2.72;277\n\"%s\";2.72;277\n" % (ini_date_str, end_date_str)
@@ -204,7 +192,7 @@ def prepare_model(start_date, end_date, region, path,onedata_token):
         wf.close()
         wind_input = base_path+'wind_generic.csv'
         
-    print("Creating file .wnd from CSV: %s" % wind_input)
+    print("Creating file .wnd")
     wind_file_name = "wind_"+ini_date.strftime('%Y-%m-%d%H%M%S')+"_"+end_date.strftime('%Y-%m-%d%H%M%S')+".wnd"
     modeling_file.csv_to_wind(wind_input, ini_date, end_date, base_path+wind_file_name)
     print("Wind file created: %s" % wind_file_name)
@@ -265,8 +253,7 @@ def prepare_model(start_date, end_date, region, path,onedata_token):
            'Filtmp': "#" + rad_file_name + "#\n",
            'FilbcT': "#" + presa_bct + "#\n",
            'FilbcC':"#" + presa_bcc + "#\n",
-           'Fildis': "#" + input_dis + "#\n",           
-           'Flmap' : "0 360 %i" % modeling_file.minutes_between_date(ini_date,end_date),
+           'Fildis': "#" + input_dis + "#\n",
            'Zeta0' : "0\n"
           }
     #Update params
@@ -278,57 +265,6 @@ def prepare_model(start_date, end_date, region, path,onedata_token):
     #f2 = open(base_path+'test_1_v2.mdf','w')
     os.rename(base_path+'test_1.mdf', base_path+'test_old.mdf')
     os.rename(base_path+'test_1_v2.mdf',base_path+'test_1.mdf')
-    
-    # WATER QUALITY
-    ini_date_str = start_date.strftime('%Y/%m/%d') + '-00:00:00'
-    end_date_str = end_date.strftime('%Y/%m/%d')+'-00:00:00'
-
-
-    q1 = open(base_path+'test_1.inp','r')
-    q2 = open(base_path+'test_1_v2.inp','w')
-
-     #TODO 
-    wind_data = ini_date_str + '  2.55\n' + end_date_str + '  1.55\n'
-    rad_data = ini_date_str + '  255.5\n' + end_date_str + '  155.5\n'
-
-
-     #Layers
-    k = 35
-    #Check Wind file
-    print("Searching Wind data")
-    print("Getting data")
-    wind_block = False
-    rad_block = False
-    for line in q1:
-        if wind_block==False and rad_block==False:
-            if '2012.01.02 00:00:00' in line:
-                line = line.replace('2012.01.02',start_date.strftime('%Y')+'.'+start_date.strftime('%m') + '.' + start_date.strftime('%d'))
-            if '2012/01/02-00:00:00' in line:
-                line = line.replace('2012/01/02-00:00:00',ini_date_str)
-            if '2012/01/05-00:00:00' in line:
-                line = line.replace('2012/01/05-00:00:00',end_date_str)
-            q2.write(line)
-            if '; wind_start' in line:
-                wind_block = True
-                q2.write(wind_data)
-            if '; rad_start' in line:
-                wind_block = True
-                q2.write(rad_data)
-        elif wind_block:
-            if '; wind_end' in line:
-                q2.write(line)
-                wind_block = False
-        elif rad_block:
-            if '; rad_end' in line:
-                q2.write(line)
-                rad_block = False
-
-    q1.close()
-    q2.close()
-
-    os.rename(base_path+'test_1.inp', base_path+'test_old.inp')
-    os.rename(base_path+'test_1_v2.inp',base_path+'test_1.inp')
-    
     try:
         deployment_id = launch_orchestrator_job('hydro',region+'/model_'+start_date.strftime('%Y-%m-%d')+'_'+end_date.strftime('%Y-%m-%d')+'/')
     except:
@@ -414,43 +350,6 @@ def launch_orchestrator_job(model_type,model_path):
     deployment_id = json.loads(r.content)['uuid']
     print("Deployment ID: %s" % deployment_id)
     return deployment_id
-
-def launch_orchestrator_sat_job(start_date,end_date,region,sat_type,sat_path):
-
-    access_token = get_access_token('https://iam.extreme-datacloud.eu/token')
-    headers = {'Content-Type': 'application/json', 'Authorization': 'Bearer '+access_token}
-
-    tosca_file = '.SAT_DATA.yml'
-
-    with open(tosca_file, 'r') as myfile:
-        tosca = myfile.read()
-    
-    data = {"parameters" : {   
-                "cpus" : 1,
-                "mem" : "4096 MB",
-                "onedata_provider" : "cloud-90-147-75-163.cloud.ba.infn.it",
-                "sat_space_name" : "LifeWatch",
-                "sat" : sat_type,
-                "sat_path" : sat_path,
-                "region" : region,
-                "start_date" : start_date.strftime('%Y-%m-%d'),
-                "end_date" : end_date.strftime('%Y-%m-%d'),
-                "onedata_zone" : "https://onezone.cloud.cnaf.infn.it"
-                 },
-            "template" : tosca
-            }
-
-    url = 'https://xdc-paas.cloud.ba.infn.it/orchestrator/deployments/'
-    r = requests.post(url, headers=headers,data=json.dumps(data)) #GET
-    print("Status code SAT: %s" % r.status_code) #200 means that the resource exists
-    print(r.headers)
-    txt = json.loads(r.text)
-    print (json.dumps(txt, indent=2, sort_keys=True))
-    #print(r.text)
-    #print(r.reason)
-    deployment_id = json.loads(r.content)['uuid']
-    print("Deployment ID: %s" % deployment_id)
-    return deployment_id
     
 def orchestrator_job_status(deployment_id):
     #TODO manage exceptions
@@ -475,138 +374,3 @@ def orchestrator_list_deployments(orchestrator_url):
     headers = {'Content-Type': 'application/json', 'Authorization': 'Bearer '+access_token}
     r = requests.get(url, headers=headers) #GET
     return json.loads(r.content)['content']
-
-
-#################### MENU ##################################
-onedata_wid = widgets.Text(
-    value='',
-    placeholder='Onedata token',
-    description='Onedata token:',
-    disabled=False
-)
-onedata_wid.value = os.environ['ONECLIENT_AUTHORIZATION_TOKEN']
-
-region_buttons = widgets.ToggleButtons(
-    options=['CdP','Sanabria'],
-    description='Reservoirs/Lakes:',
-)
-ini_date = widgets.DatePicker(
-    description='Initial Date',
-    disabled=False
-)
-end_date = widgets.DatePicker(
-    description='End Date',
-    disabled=False
-)
-actions = widgets.SelectMultiple(
-    options=['meteo', 'water_mask', 'water_surface', 'cloud_mask', 'cloud_coverage', 'list_files', 'download_sat_data', 'model'],
-    value=['meteo'],
-    #rows=10,
-    description='Actions',
-    disabled=False
-)
-tab = VBox(children=[onedata_wid, region_buttons, ini_date, end_date, actions])
-
-button = widgets.Button(
-    description='Run',
-)
-
-last_model=''
-
-out = widgets.Output()
-@button.on_click
-def plot_on_click(b):
-    with out:
-        clear_output()
-        if actions.value[0] == 'meteo':
-            plot_meteo(region_buttons,ini_date,end_date,actions)
-        elif actions.value[0] == 'list_files':
-            find_dataset_type(ini_date.value,end_date.value,'',onedata_wid.value)
-        elif actions.value[0] == 'download_sat_data':
-            launch_orchestrator_sat_job(ini_date.value,end_date.value,region_buttons.value,'Landsat8','/xdc_lfw_sat/datesets/')
-        elif actions.value[0] == 'model':
-            last_model=prepare_model(ini_date.value,end_date.value, region_buttons.value, '/home/jovyan/datasets/LifeWatch/',onedata_wid.value)
-        else:
-            plot_satellite(region_buttons,ini_date,end_date,actions)
-
-vbox1 = VBox(children=[tab,button,out])
-#Jobs
-job_list=[]
-for e in orchestrator_list_deployments(None):
-    job_list.append('ID: ' + e['uuid'] + ' | Creation time: ' + e['creationTime'] + ' | Status: ' + e['status'])
-
-selection_jobs = widgets.Select(
-    options=job_list,
-    value=None,
-    # rows=10,
-    description='Job List',
-    disabled=False,
-    layout=Layout(width='90%')
-)
-
-button2 = widgets.Button(
-    description='Show deployment',
-)
-
-out2 = widgets.Output()
-
-@button2.on_click
-def model_on_click(b):
-    with out2:
-        clear_output()
-        jb = selection_jobs.value
-        orchestrator_job_status(jb[jb.find('ID: ', 0)+len('ID: '):jb.find(' | ')])
-
-vbox2 = VBox(children=[selection_jobs,button2,out2])
-
-#Model visualization
-onedata_token = os.environ['ONECLIENT_AUTHORIZATION_TOKEN']
-models = find_models(onedata_token)
-opt = []
-for e in models:
-    opt.append(e['key']['region']+'/model_'+e['key']['beginDate']+'_'+e['key']['endDate']+'/trim-test_1.nc')
-
-selection = widgets.Select(
-    options=opt,
-    value=None,
-    # rows=10,
-    description='Models',
-    layout=Layout(width='75%'),
-    disabled=False
-)
-
-depth_wid = widgets.IntSlider(
-    value=7,
-    min=0,
-    max=35,
-    step=1,
-    description='Test:',
-    disabled=False,
-    continuous_update=False,
-    orientation='horizontal',
-    readout=True,
-    readout_format='d'
-)
-button3 = widgets.Button(
-    description='Show model output',
-)
-
-out3 = widgets.Output()
-
-@button.on_click
-def model_on_click(b):
-    with out3:
-        clear_output()
-        for e in models:
-            temp_map('/home/jovyan/datasets/LifeWatch/' + selection.value, e['key']['beginDate']+' 00:00:00', e['key']['endDate']+' 01:00:00', depth_wid.value)
-            break
-
-
-vbox3 = VBox(children=[selection,depth_wid,button3,out3])
-
-#Menu
-menu = widgets.Tab()
-menu.children = [vbox1, vbox2, vbox3]
-menu.set_title(0,'Data Ingestion')
-menu.set_title(1,'Job status')
-menu.set_title(2,'Model visualization')
