@@ -579,6 +579,7 @@ models = find_models(onedata_token)
 opt = []
 for e in models:
     opt.append(e['key']['region']+'/model_'+e['key']['beginDate']+'_'+e['key']['endDate']+'/trim-test_1.nc')
+    opt.append(e['key']['region']+'/model_'+e['key']['beginDate']+'_'+e['key']['endDate']+'/com-test_1_waqgeom.nc')
 
 box_layout = Layout(display='flex',
                     align_items='center',
@@ -623,7 +624,7 @@ def model_on_click(b):
     dataset= Dataset(nombre_dataset, 'r', format='NETCDF4_CLASSIC')
     #variables[nombre_variable, num_dim, descripcion]
     variables=[[],[],[]]
-    #propiedades[index_var_escogida,fecha,profundidad,min_value_var, max_value_var, mean_value_var]
+    #propiedades[index_var_escogida,fecha,profundidad,min_v/alue_var, max_value_var, mean_value_var]
     propiedades=[[],[],[],[],[],[]]
     
     carga_variables()
