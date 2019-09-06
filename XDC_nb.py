@@ -579,7 +579,7 @@ models = find_models(onedata_token)
 opt = []
 for e in models:
     opt.append(e['key']['region']+'/model_'+e['key']['beginDate']+'_'+e['key']['endDate']+'/trim-test_1.nc')
-    opt.append(e['key']['region']+'/model_'+e['key']['beginDate']+'_'+e['key']['endDate']+'/com-test_1_waqgeom.nc')
+    opt.append(e['key']['region']+'/model_'+e['key']['beginDate']+'_'+e['key']['endDate']+'/test_1_map.nc')
 
 box_layout = Layout(display='flex',
                     align_items='center',
@@ -665,6 +665,9 @@ def carga_variables():
             except:
                 des=(n)
             variables[2]= np.append(variables[2],des)
+    if 'nmesh2d_dlwq_time' in dataset.variables.keys():
+        time = 'nmesh2d_dlwq_time'
+        tipo = 0
 
 #Se inicializan los widgets 
 def set_widgets():
