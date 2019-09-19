@@ -52,6 +52,12 @@ topology_template:
       description: Satellite chosen to get the data
       default: ''
       required: yes
+      
+    coordinates:
+      type: string
+      description: Selected place coordinates
+      default: ''
+      required: yes
 
     cpus:
       type: float
@@ -81,6 +87,7 @@ topology_template:
           START_DATE: { get_input: start_date}
           END_DATE: { get_input: start_date}
           REGION: { get_input: region}
+          COORD: { get_input: coordinates}
           SAT: { get_input: sat}
           SAT_PATH: { get_input: sat_path }
       artifacts:
