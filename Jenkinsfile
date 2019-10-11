@@ -8,19 +8,11 @@ pipeline {
     }
 
     environment {
-        dockerhub_repo = "deephdc/deep-oc-mods"
-        tf_ver = "1.14.0"
+        dockerhub_repo = "ferag/xdc_lfw_frontend"
         py_ver = "py3"
     }
 
     stages {
-        stage('Validate metadata') {
-            steps {
-                checkout scm
-                sh 'deep-app-schema-validator metadata.json'
-            }
-        }
-
         stage('Docker image building') {
             when {
                 anyOf {
@@ -37,44 +29,22 @@ pipeline {
                         // CPU
                         id_cpu = DockerBuild(
                             id,
-                            tag: ['latest', 'cpu'],
+                            tag: ['latest'],
                             build_args: [
-                                "tf_ver=${env.tf_ver}",
                                 "py_ver=${env.py_ver}",
                                 "branch=master"
                             ]
-                        )
-                        // GPU
-                        id_gpu = DockerBuild(
-                            id,
-                            tag: ['gpu'],
-                            build_args: [
-                                "tf_ver=${env.tf_ver}-gpu",
-                                "py_ver=${env.py_ver}",
-                                "branch=master"
-                            ]                            
                         )
                     }
                     if (env.BRANCH_NAME == 'test') {
                         // CPU
                         id_cpu = DockerBuild(
                             id,
-                            tag: ['test', 'cpu-test'],
+                            tag: ['test'],
                             build_args: [
-                                "tf_ver=${env.tf_ver}",
                                 "py_ver=${env.py_ver}",
                                 "branch=test"
                             ]
-                        )
-                        // GPU
-                        id_gpu = DockerBuild(
-                            id,
-                            tag: ['gpu-test'],
-                            build_args: [
-                                "tf_ver=${env.tf_ver}-gpu",
-                                "py_ver=${env.py_ver}",
-                                "branch=test"
-                            ]                            
                         )
                     }
                 }
@@ -92,7 +62,6 @@ pipeline {
             steps {
                 script {
                     DockerPush(id_cpu)
-                    DockerPush(id_gpu)
                 }
             }
             post {
@@ -101,21 +70,6 @@ pipeline {
                 }
                 always {
                     cleanWs()
-                }
-            }
-        }
-
-        stage("Render metadata on the marketplace") {
-            when {
-                allOf {
-                    branch 'master'
-                    changeset 'metadata.json'
-                }
-            }
-            steps {
-                script {
-                    def job_result = JenkinsBuildJob("Pipeline-as-code/deephdc.github.io/pelican")
-                    job_result_url = job_result.absoluteUrl
                 }
             }
         }
