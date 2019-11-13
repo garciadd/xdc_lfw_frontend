@@ -8,7 +8,7 @@ pipeline {
     }
 
     environment {
-        dockerhub_repo = "ferag/xdc_lfw_frontend"
+        dockerhub_repo = "extremedatacloud/xdc_lfw_frontend"
         py_ver = "py3"
     }
 
