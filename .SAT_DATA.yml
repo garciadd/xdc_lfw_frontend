@@ -85,7 +85,7 @@ topology_template:
           ONEDATA_PROVIDERS: { get_input : onedata_provider }
           ONEDATA_SPACE: { get_input: sat_space_name }
           START_DATE: { get_input: start_date}
-          END_DATE: { get_input: start_date}
+          END_DATE: { get_input: end_date}
           REGION: { get_input: region}
           COORD: { get_input: coordinates}
           SAT: { get_input: sat}
