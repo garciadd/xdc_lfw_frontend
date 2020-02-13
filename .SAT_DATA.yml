@@ -24,11 +24,6 @@ topology_template:
       description: Onedata space where the model is stored
       required: yes
     
-    sat_path:
-      type: string
-      description: Path to the model inside the Onedata space
-      required: yes
-
     start_date:
       type: string
       description: start date for searching data
@@ -47,15 +42,9 @@ topology_template:
       default: ''
       required: yes
       
-    sat:
+    sat_args:
       type: string
-      description: Satellite chosen to get the data
-      default: ''
-      required: yes
-      
-    coordinates:
-      type: string
-      description: Selected place coordinates
+      description: JSON with input
       default: ''
       required: yes
 
@@ -76,7 +65,7 @@ topology_template:
       type: tosca.nodes.indigo.Container.Application.Docker.Chronos
       properties:
         description: 'Execute Application'
-        command: 'wget https://raw.githubusercontent.com/IFCA/Dockerfile_sat/master/job.sh && /bin/bash job.sh'
+        command: 'curl -O https://raw.githubusercontent.com/IFCA/Dockerfile_sat/master/job.sh && /bin/bash job.sh>"$REGION"_"$START_DATE"_"$END_DATE".stderr 2>&1 && mv "$REGION"_"$START_DATE"_"$END_DATE".stderr /onedata/output/"$ONEDATA_SPACE"/logs/'
         uris: []
         retries: 3
         environment_variables:
@@ -85,11 +74,9 @@ topology_template:
           ONEDATA_PROVIDERS: { get_input : onedata_provider }
           ONEDATA_SPACE: { get_input: sat_space_name }
           START_DATE: { get_input: start_date}
-          END_DATE: { get_input: start_date}
+          END_DATE: { get_input: end_date}
           REGION: { get_input: region}
-          COORD: { get_input: coordinates}
-          SAT: { get_input: sat}
-          SAT_PATH: { get_input: sat_path }
+          SAT_ARGS: { get_input: sat_args}
       artifacts:
         image:
           file: 'garciadd/xdc_lfw_sat' 
