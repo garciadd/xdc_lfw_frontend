@@ -44,6 +44,9 @@ pipeline {
         }
 
         stage('Docker image building') {
+            agent {
+                label 'docker-build'
+            }
             when {
                 anyOf {
                     branch 'master'
@@ -82,6 +85,9 @@ pipeline {
         }
         
         stage('Docker Hub delivery') {
+            agent {
+                label 'docker-build'
+            }
             when {
                 anyOf {
                     branch 'master'
