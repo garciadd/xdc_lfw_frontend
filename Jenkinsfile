@@ -8,11 +8,10 @@ pipeline {
     }
 
     environment {
-        author_name = "Fernando Aguilar"
-        author_email = "aguilarf@ifca.unican.es"
-        app_name = "xdc_lfw_frontend"
-        job_location = "TODO"
-        job_location_test = "TODO"
+        dockerhub_repo = "deephdc/deep-oc-mods"
+        tf_ver = "1.14.0"
+        dockerhub_repo = "ferag/xdc_lfw_frontend"
+        py_ver = "py3"
     }
     
     stages {
