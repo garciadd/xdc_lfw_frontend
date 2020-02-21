@@ -13,6 +13,18 @@ pipeline {
     }
 
     stages {
+        
+        stage('Style analysis') {
+            steps {
+                ToxEnvRun('pep8')
+            }
+            post {
+                always {
+                    WarningsReport('Pep8')
+                }
+            }
+        }
+
         stage('Docker image building') {
             when {
                 anyOf {
