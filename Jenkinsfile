@@ -4,23 +4,41 @@
 
 pipeline {
     agent {
-        label 'docker-build'
+        label 'python'
     }
 
     environment {
-        dockerhub_repo = "extremedatacloud/xdc_lfw_frontend"
-        py_ver = "py3"
+        author_name = "Fernando Aguilar"
+        author_email = "aguilarf@ifca.unican.es"
+        app_name = "xdc_lfw_frontend"
+        job_location = "TODO"
+        job_location_test = "TODO"
     }
-
+    
     stages {
         
-        stage('Style analysis') {
+         stage('Code fetching') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Style analysis: PEP8') {
             steps {
                 ToxEnvRun('pep8')
             }
             post {
                 always {
-                    WarningsReport('Pep8')
+                    warnings canComputeNew: false,
+                             canResolveRelativePaths: false,
+                             defaultEncoding: '',
+                             excludePattern: '',
+                             healthy: '',
+                             includePattern: '',
+                             messagesPattern: '',
+                             parserConfigurations: [[parserName: 'PYLint', pattern: '**/flake8.log']],
+                             unHealthy: ''
+                    //WarningsReport('PYLint') // 'Flake8' fails..., consoleParsers does not produce any report...
                 }
             }
         }
