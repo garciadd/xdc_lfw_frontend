@@ -1,2 +1,2 @@
-# xdc_lfw_frontend
-Jupyter notebooks and scripts
+# LifeWatch XDC - Water Quality manager
+Front End: Jupyter notebooks and scripts
