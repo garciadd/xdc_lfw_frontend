@@ -20,7 +20,7 @@ pipeline {
             }
         }
 
-        stage('Style analysis: PEP8') {
+        stage('Style Analysis: PEP8') {
             steps {
                 ToxEnvRun('pep8')
             }
