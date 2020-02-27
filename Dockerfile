@@ -81,7 +81,7 @@ ENV WQ_REGION CdP
 ENV WQ_START_DATE 01-01-2018
 ENV WQ_END_DATE 18-01-2018
 ENV WQ_ACTION cloud_coverage
-ENV ONEDATA_TOKEN 'MDAxNWxvY2F00aW9uIG9uZXpvbmUKMDAzMGlkZW500aWZpZXIgMDRmMGQxODRmMTBmODAxN2ZkNTNkNGJlYWIyNjc3NTkKMDAxYWNpZCB00aW1lIDwgMTU2MzM00NDg00MQowMDJmc2lnbmF00dXJlIGy97Y8H4rGIxCMYsJSHQg1v6BpLGAwnDL01EE6AFAs1BCg'
+ENV ONEDATA_TOKEN 'H4rGIxCMYsJSHQg1v6BpLGAwnDL01EE6AFAs1BCg'
 ENV ONEDATA_URL 'https://oneprovider-cnaf.cloud.cnaf.infn.it'
 ENV ONEDATA_API '/api/v3/oneprovider/'
 ENV ONEDATA_SPACE LifeWatch
@@ -112,7 +112,7 @@ RUN jupyter nbextension enable --py --sys-prefix widgetsnbextension
 #conda install skimage
 RUN echo "Let's demo review or second"
 RUN ls
-RUN git clone https://github.com/IFCA/xdc_lfw_data.git
+RUN git clone https://github.com/extreme-datacloud/xdc_lfw_data.git
 #Create config file
 
 RUN exec 3<> ./xdc_lfw_data/wq_modules/config.py && \
@@ -141,15 +141,15 @@ RUN exec 3<> ./xdc_lfw_data/wq_modules/config.py && \
     echo "local_path = \"/home/jovyan/lfw_datasets\"" >&3 && \
     echo "" >&3 && \
     echo "#AEMET credentials" >&3 && \
-    echo "METEO_API_TOKEN='eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ2aWxsYXJyakB1bmljYW4uZXMiLCJqdGkiOiJkZDc5ZjVmNy1hODQwLTRiYWQtYmMzZi1jNjI3Y2ZkYmUxNmYiLCJpc3MiOiJBRU1FVCIsImlhdCI6MTUyMDg0NzgyOSwidXNlcklkIjoiZGQ3OWY1ZjctYTg0MC00YmFkLWJjM2YtYzYyN2NmZGJlMTZmIiwicm9sZSI6IiJ9.LMl_cKCtYi3RPwLwO7fJYZMes-bdMVR91lRFZbUSv84'" >&3 && \
+    echo "METEO_API_TOKEN='0NzgyOSwidXNlcklkIjoiZGQ3OWY1ZjctYTg0MC00YmFkLWJjM2YtYzYyN2NmZGJlMTZmIiwicm9sZSI6IiJ9.LMl_cKCtYi3RPwLwO7fJYZMes-bdMVR91lRFZbUSv84'" >&3 && \
     echo "" >&3 && \
     echo "METEO_API_URL='opendata.aemet.es'" >&3 && \
     echo "" >&3 && \
     echo "#Sentinel credentials" >&3 && \
-    echo "sentinel_pass = {'username':\"lifewatch\", 'password':\"xdc_lfw_data\"}" >&3 && \
+    echo "sentinel_pass = {'username':\"lifewatch\", 'password':\"xta\"}" >&3 && \
     echo "" >&3 && \
     echo "#Landsat credentials" >&3 && \
-    echo "landsat_pass = {'username':\"lifewatch\", 'password':\"xdc_lfw_data2018\"}" >&3 && \
+    echo "landsat_pass = {'username':\"lifewatch\", 'password':\"xdda8\"}" >&3 && \
     echo "" >&3 && \
     echo "#available regions" >&3 && \
     echo "regions = {'CdP': {\"id\": 210788, \"coordinates\": {\"W\":-2.830, \"S\":41.820, \"E\":-2.690, \"N\":41.910}}, 'Cogotas': {\"id\": 214571, \"coordinates\": {\"W\":-4.728, \"S\":40.657, \"E\":-4.672, \"N\":40.731}}, 'Sanabria': {\"id\": 211645, \"coordinates\": {\"W\":-6.739, \"S\":42.107, \"E\":-6.689, \"N\":42.136}}}"  >&3 && \
