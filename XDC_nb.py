@@ -25,7 +25,7 @@ from datetime import timedelta
 from datetime import datetime
 from dateutil import parser
 import numpy as np
-from numpy.ma import masked_array, masked_inside, masked_outside
+from numpy.ma import masked_inside, masked_outside
 import os
 import shutil
 import requests
@@ -34,11 +34,7 @@ from netCDF4 import Dataset
 from typing import overload
 import re
 
-# import satellite submodules
-from wq_modules import sentinel
-from wq_modules import landsat
-from wq_modules import water
-from wq_modules import clouds
+# import model submodules
 from wq_modules import modeling_file
 
 # import meteo submodules
@@ -97,44 +93,20 @@ def plot_satellite(region_buttons, ini_date, end_date, actions):
     onedata_mode = config.onedata_mode
     utils.path_configurations(onedata_mode)
 
-    # Action management
-    if act is not None:
-
-        # download sentinel files
-        s = sentinel.Sentinel(sd, ed, region, act)
-        s.download()
-        sentinel_files = s.__dict__['output']
-
-        # download landsat files
-        la = landsat.Landsat(sd, ed, region, act)
-        la.download()
-        landsat_files = la.__dict__['output']
-
-        if onedata_mode == 1:
-            utils.clean_temporal_path()
-
-        if act == 'water_mask' or act == 'water_surface':
-
-            water.main_water(sentinel_files, landsat_files, region, act)
-
-        elif act == 'cloud_mask' or act == 'cloud_coverage':
-
-            clouds.main_cloud(sentinel_files, landsat_files, region, act)
-
 
 def find_dataset_type(start_date, end_date, typ, onedata_token):
     headers = {"X-Auth-Token": onedata_token}
-    url = ("https://cloud-90-147-75-163.cloud.ba.infn.it" +
-           + "/api/v3/oneprovider/spaces/17d670040b30511bc4848cab56449088")
+    url = ("https://cloud-90-147-75-163.cloud.ba.infn.it"
+           "/api/v3/oneprovider/spaces/17d670040b30511bc4848cab56449088")
     r = requests.get(url, headers=headers)
     space_id = json.loads(r.content)['spaceId']
     print('Onedata space ID: %s' % space_id)
     index_name = 'region_type__query'
-    onedata_cdmi_api = ("https://cloud-90-147-75-163.cloud.ba.infn.it" +
-                        + "/cdmi/cdmi_objectid/"
-    url = ("https://cloud-90-147-75-163.cloud.ba.infn.it/api/v3" +
-           + "/oneprovider/spaces/" +
-           + space_id + "/indexes/" + index_name + "/query")
+    # onedata_cdmi_api = ("https://cloud-90-147-75-163.cloud.ba.infn.it"
+    #                    "/cdmi/cdmi_objectid/")
+    url = "https://cloud-90-147-75-163.cloud.ba.infn.it/api/v3"
+    url = url + "/oneprovider/spaces/"
+    url = url + space_id + "/indexes/" + index_name + "/query"
     r = requests.get(url, headers=headers)
     response = json.loads(r.content)
     result = []
@@ -162,16 +134,16 @@ def find_dataset_type(start_date, end_date, typ, onedata_token):
 def find_models(onedata_token):
     headers = {"X-Auth-Token": onedata_token}
     url = ("https://cloud-90-147-75-163.cloud.ba.infn.it" +
-           + "/api/v3/oneprovider/spaces/17d670040b30511bc4848cab56449088"
+           + "/api/v3/oneprovider/spaces/17d670040b30511bc4848cab56449088")
     r = requests.get(url, headers=headers)
     space_id = json.loads(r.content)['spaceId']
     print('Searching models')
     index_name = 'models_region_query'
-    onedata_cdmi_api = ("https://cloud-90-147-75-163.cloud.ba.infn.it" +
-                        + "/cdmi/cdmi_objectid/")
+    # onedata_cdmi_api = ("https://cloud-90-147-75-163.cloud.ba.infn.it" +
+    #                     + "/cdmi/cdmi_objectid/")
     url = ("https://cloud-90-147-75-163.cloud.ba.infn.it" +
            + "/api/v3/oneprovider/spaces/" + space_id +
-           + "/indexes/" + index_name + "/query"
+           + "/indexes/" + index_name + "/query")
     r = requests.get(url, headers=headers)
     response = json.loads(r.content)
     return response
@@ -181,12 +153,11 @@ def check_date(start_date, end_date, meta_beginDate, meta_endDate):
     meta_start_date = parser.parse(meta_beginDate)
     meta_end_date = parser.parse(meta_endDate)
     try:
-        print(("Selected [start: %s end: %s ] | Metadata: " +
-               + "[start: %s end: %s]" % (
-                   start_date,
-                   end_date,
-                   meta_start_date,
-                   meta_end_date)))
+        print("Slctd[st: %s end: %s ]|Meta:[st: %s end: %s]" % (
+            start_date,
+            end_date,
+            meta_start_date,
+            meta_end_date))
         if meta_start_date.date() <= start_date and \
             meta_end_date.date() >= end_date:
             print("Candidate File")
