@@ -19,7 +19,11 @@ pipeline {
                 checkout scm
             }
         }
-
+        stage('Testing') {
+            steps {
+                ToxEnvRun('py36')
+            }
+        }
         stage('Style Analysis: PEP8') {
             steps {
                 ToxEnvRun('pep8')

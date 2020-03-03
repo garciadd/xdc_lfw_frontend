@@ -5,5 +5,3 @@ numpy
 requests
 netCDF4
 typing
-ipython
-notebook
