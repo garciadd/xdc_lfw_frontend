@@ -44,7 +44,6 @@ RUN apt-get update && \
 
 ENV PATH="/usr/bin:${PATH}"
 
-
 ##### Install tools for datamining ###
 RUN /opt/conda/bin/pip install numpy scipy matplotlib scikit-learn pandas pillow seaborn
 
@@ -108,8 +107,7 @@ RUN easy_install request
 RUN echo "test"
 RUN conda install xmltodict scikit-image imageio netCDF4 tqdm numpy utm matplotlib pandas ipywidgets tornado=5.1.1 gdal -y
 RUN jupyter nbextension enable --py --sys-prefix widgetsnbextension
-#conda install skimage
-RUN echo "Let's demo review or second"
+
 RUN ls
 RUN git clone https://github.com/extreme-datacloud/xdc_lfw_data.git
 #Create config file
