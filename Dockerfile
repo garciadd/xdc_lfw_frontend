@@ -165,7 +165,7 @@ RUN apt-get install sudo oneclient -y
 RUN adduser jovyan sudo
 RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 RUN echo 'Frontend installing...'
-RUN git clone https://github.com/IFCA/xdc_lfw_frontend
+RUN git clone https://github.com/extreme-datacloud/xdc_lfw_frontend
 RUN chown -R jovyan:users ./xdc_lfw_frontend/*
 RUN mv ./xdc_lfw_frontend/* /home/jovyan/
 RUN mv ./xdc_lfw_frontend/.HY_MODEL.yml /home/jovyan/
