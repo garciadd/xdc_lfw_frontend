@@ -20,7 +20,6 @@ RUN  apt-get update && \
 
 RUN pip install --upgrade pip
 
-#
 ## Install ftp and Faker 
 RUN  apt-get update && \
   apt-get -y upgrade && \
