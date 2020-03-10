@@ -429,9 +429,9 @@ def prepare_model(start_date, end_date, region, path, onedata_token):
 
     try:
         deployment_id = launch_orchestrator_job(
-            'hydro',"%s/model_%s_%s/" % (
+            'hydro', "%s/model_%s_%s/" % (
                 region, start_date.strftime('%Y-%m-%d'),
-                end_date.strftime('%Y-%m-%d'))
+                end_date.strftime('%Y-%m-%d')))
     except Exception as e:
         print(e)
         print("PaaS Orchestrator disconnected. Run the model manually")
