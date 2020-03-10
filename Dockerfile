@@ -111,7 +111,7 @@ RUN jupyter nbextension enable --py --sys-prefix widgetsnbextension
 RUN ls
 RUN git clone https://github.com/extreme-datacloud/xdc_lfw_data.git
 #Create config file
-
+RUN rm ./xdc_lfw_data/wq_modules/config.py
 RUN exec 3<> ./xdc_lfw_data/wq_modules/config.py && \
     echo "#imports apis" >&3 && \
     echo "import os" >&3 && \
