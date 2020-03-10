@@ -85,8 +85,7 @@ ENV ONEDATA_API '/api/v3/oneprovider/'
 ENV ONEDATA_SPACE LifeWatch
 ENV ONEDATA_ZONE 'https://onezone.cloud.cnaf.infn.it'
 ENV DOWNLOAD_FOLDER datasets
-RUN ls
-RUN echo 'Cloning'
+
 #The following env variables will be passed thorugh the orchestrator
 # todoRUN pip3 install Cython
 
