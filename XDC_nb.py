@@ -179,25 +179,28 @@ def prepare_model(start_date, end_date, region, path, onedata_token):
     ini_date_str = start_date.strftime('%Y-%m-%d') + ' 00:00:00'
     end_date_str = end_date.strftime('%Y-%m-%d') + ' 00:00:00'
 
-    print(("Generating new model" + '/model_' +
-           + start_date.strftime('%Y-%m-%d') + '_' +
-           + end_date.strftime('%Y-%m-%d') + '/'))
+    print(("Generating new model" + '/model_%s_%s/' % (
+        (start_date.strftime('%Y-%m-%d'), end_date.strftime('%Y-%m-%d')))))
     try:
         shutil.copytree(
-            (path + region + '/model', path + region + '/model_' +
-             + start_date.strftime('%Y-%m-%d') + '_' +
-             + end_date.strftime('%Y-%m-%d') + '/'))
+            "%s%s/model" % (path, region),
+            "%s%s/model_%s_%s/" % (
+                start_date.strftime('%Y-%m-%d'),
+                end_date.strftime('%Y-%m-%d')))
 
     except FileExistsError:
-        shutil.rmtree(
-            (path + region + '/model_' + start_date.strftime('%Y-%m-%d') +
-             + '_' + end_date.strftime('%Y-%m-%d') + '/'))
+        shutil.rmtree("%s%s/model_%s_%s/" % (
+            path, region, start_date.strftime('%Y-%m-%d'),
+            end_date.strftime('%Y-%m-%d')))
         shutil.copytree(
-            (path + region + '/model', path + region + '/model_' +
-             + start_date.strftime('%Y-%m-%d') + '_' +
-             + end_date.strftime('%Y-%m-%d') + '/'))
-    base_path = (path + region + '/model_' + start_date.strftime('%Y-%m-%d') +
-                 + '_' + end_date.strftime('%Y-%m-%d') + '/')
+            "%s%s/model" % (path, region),
+            "%s%s/model_%s_%s/" % (
+                path, region,
+                start_date.strftime('%Y-%m-%d'),
+                end_date.strftime('%Y-%m-%d')))
+    base_path = "%s%s/model_%s_%s/" % (
+        path, region, start_date.strftime('%Y-%m-%d'),
+        end_date.strftime('%Y-%m-%d'))
     fmt = '%Y-%m-%d %H:%M:%S'
     ini_date = datetime.strptime(ini_date_str, fmt)
     end_date = datetime.strptime(end_date_str, fmt)
@@ -215,12 +218,10 @@ def prepare_model(start_date, end_date, region, path, onedata_token):
     # Search once. If it is not found, it tries to download the data
     try:
         print("Searching Wind data")
-        wind_input = (path + region + '/' +
-                      + find_dataset_type(
-                          ini_date.date(),
-                          end_date.date(),
-                          'wind',
-                          onedata_token)[0]["file"])
+        wind_input = (
+            path + region + '/' + find_dataset_type(
+                ini_date.date(), end_date.date(),
+                'wind', onedata_token)[0]["file"])
     except Exception as e:
         print(e)
         print("Getting data")
@@ -231,24 +232,23 @@ def prepare_model(start_date, end_date, region, path, onedata_token):
     try:
         if wind_input == '':
             print("Searching Wind data again")
-            wind_input = (path + region + '/' +
-                          + find_dataset_type(
-                              ini_date.date(),
-                              end_date.date(),
-                              'wind',
-                              onedata_token)[0]["file"])
+            wind_input = (
+                path + region + '/' + find_dataset_type(
+                    ini_date.date(), end_date.date(), 'wind',
+                    onedata_token)[0]["file"])
     except Exception:
         wf = open(base_path + 'wind_generic.csv', 'w')
-        line = ("date;speed;dir\n\"%s\";2.72" +
-                + ";277\n\"%s\";2.72;277\n" % (
-                    ini_date_str, end_date_str))
+        line = (
+            "date;speed;dir\n\"%s\";2.72;277\n\"%s\";2.72;277\n" % (
+                ini_date_str, end_date_str))
         wf.write(line)
         wf.close()
         wind_input = base_path + 'wind_generic.csv'
 
     print("Creating file .wnd from CSV: %s" % wind_input)
-    wind_file_name = ("wind_" + ini_date.strftime('%Y-%m-%d%H%M%S') +
-                      + "_" + end_date.strftime('%Y-%m-%d%H%M%S') + ".wnd")
+    wind_file_name = "wind_%s_%s.wnd" % (
+        ini_date.strftime('%Y-%m-%d%H%M%S'),
+        end_date.strftime('%Y-%m-%d%H%M%S'))
     modeling_file.csv_to_wind(
         wind_input, ini_date, end_date, base_path + wind_file_name)
     print("Wind file created: %s" % wind_file_name)
@@ -258,8 +258,9 @@ def prepare_model(start_date, end_date, region, path, onedata_token):
     print("Searching Initial data")
     print("Getting initial data")
     print("Creating initial data file .ini")
-    ini_file_name = ("initial_" + ini_date.strftime('%Y-%m-%d%H%M%S') +
-                     + "_" + end_date.strftime('%Y-%m-%d%H%M%S') + ".ini")
+    ini_file_name = "initial_%s_%s.ini" % (
+        ini_date.strftime('%Y-%m-%d%H%M%S'),
+        end_date.strftime('%Y-%m-%d%H%M%S'))
     print("Initial file created: %s" % ini_file_name)
     # Check Radiation file
     print("Searching Radiation data")
@@ -269,15 +270,16 @@ def prepare_model(start_date, end_date, region, path, onedata_token):
             ini_date.date(), end_date.date(), 'rad')[0]['file']
     except Exception:
         rf = open(base_path + 'rad_generic.csv', 'w')
-        line = ("date;hum;temp;rad\n\"%s\";22.72" +
-                + ";12.4;0\n\"%s\";22.72;12.4;200\n" % (
-                    ini_date_str, end_date_str))
+        line = "date;hum;temp;rad\n\"%s\";22.72"\
+            + ";12.4;0\n\"%s\";22.72;12.4;200\n" % (
+                ini_date_str, end_date_str)
         rf.write(line)
         rf.close()
         rad_input = base_path + 'rad_generic.csv'
     print("Creating file .tem")
-    rad_file_name = ("rad_" + ini_date.strftime('%Y-%m-%d%H%M%S') +
-                     + "_" + end_date.strftime('%Y-%m-%d%H%M%S') + ".tem")
+    rad_file_name = "rad_%s_%s.tem" % (
+        ini_date.strftime('%Y-%m-%d%H%M%S'),
+        end_date.strftime('%Y-%m-%d%H%M%S'))
     modeling_file.csv_to_tem(
         rad_input, ini_date, end_date, base_path + rad_file_name)
     print("Radiation file created: %s" % rad_file_name)
@@ -395,10 +397,10 @@ def prepare_model(start_date, end_date, region, path, onedata_token):
         if wind_block is False and rad_block is False:
             if '2012.01.02 00:00:00' in line:
                 line = line.replace(
-                    '2012.01.02',
-                    start_date.strftime('%Y') + '.' +
-                    + start_date.strftime('%m') + '.' +
-                    + start_date.strftime('%d'))
+                    '2012.01.02', "%s.%s.%s" % (
+                        start_date.strftime('%Y'),
+                        start_date.strftime('%m'),
+                        start_date.strftime('%d')))
             if '2012/01/02-00:00:00' in line:
                 line = line.replace('2012/01/02-00:00:00', ini_date_str)
             if '2012/01/05-00:00:00' in line:
@@ -427,14 +429,15 @@ def prepare_model(start_date, end_date, region, path, onedata_token):
 
     try:
         deployment_id = launch_orchestrator_job(
-            'hydro',
-            region + '/model_' + start_date.strftime('%Y-%m-%d') +
-            + '_' + end_date.strftime('%Y-%m-%d') + '/')
+            'hydro',"%s/model_%s_%s/" % (
+                region, start_date.strftime('%Y-%m-%d'),
+                end_date.strftime('%Y-%m-%d'))
     except Exception as e:
         print(e)
         print("PaaS Orchestrator disconnected. Run the model manually")
-        return path + region + '/model_' + start_date.strftime('%Y-%m-%d')
-        + '_' + end_date.strftime('%Y-%m-%d') + '/'
+        return "%s%s/model_%s_%s/" % (
+            path, region, start_date.strftime('%Y-%m-%d'),
+            end_date.strftime('%Y-%m-%d'))
     return deployment_id
 
 
