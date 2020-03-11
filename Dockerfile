@@ -33,9 +33,9 @@ RUN apt-get install -y libreadline-gplv2-dev libncursesw5-dev libssl-dev libsqli
 
 RUN apt-get install -y python python-pip python-tk
 
+RUN echo 'Dependencies...' 
 RUN apt-get update && \
     apt-get install -y libreadline-dev && \
- #   apt upgrade -y r-base r-base-dev && \
     apt update && \
     apt upgrade && \
     apt-get install -y g++  && \
