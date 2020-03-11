@@ -185,6 +185,7 @@ def prepare_model(start_date, end_date, region, path, onedata_token):
         shutil.copytree(
             "%s%s/model" % (path, region),
             "%s%s/model_%s_%s/" % (
+                path, region,
                 start_date.strftime('%Y-%m-%d'),
                 end_date.strftime('%Y-%m-%d')))
 
@@ -267,12 +268,12 @@ def prepare_model(start_date, end_date, region, path, onedata_token):
     print("Getting data")
     try:
         rad_input = path + find_dataset_type(
-            ini_date.date(), end_date.date(), 'rad')[0]['file']
+            ini_date.date(), end_date.date(), 'rad', onedata_token)[0]['file']
     except Exception:
         rf = open(base_path + 'rad_generic.csv', 'w')
-        line = "date;hum;temp;rad\n\"%s\";22.72"\
-            + ";12.4;0\n\"%s\";22.72;12.4;200\n" % (
-                ini_date_str, end_date_str)
+        line = ("date;hum;temp;rad\n\"%s\";22.72"
+                ";12.4;0\n\"%s\";22.72;12.4;200\n" % (
+                    ini_date_str, end_date_str))
         rf.write(line)
         rf.close()
         rad_input = base_path + 'rad_generic.csv'
