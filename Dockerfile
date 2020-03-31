@@ -71,7 +71,7 @@ ENV NETCDF_CFLAGS -I/usr/local/include
 RUN apt-get install software-properties-common -y
 RUN add-apt-repository ppa:ubuntugis/ubuntugis-unstable 
 RUN apt-get update -y
-RUN apt-get install libpnetcdf-dev gdal-bin python3-gdal libgdal20 rabbitmq-server -y
+RUN apt-get install libpnetcdf-dev gdal-bin python3-gdal libgdal26 -y
 #TODO libgdal1i
 
 #The following env variables will be passed thorugh the orchestrator
@@ -103,8 +103,8 @@ RUN curl http://packages.onedata.org/onedata.gpg.key | apt-key add -
 RUN apt-get update && curl http://packages.onedata.org/onedata.gpg.key | apt-key add -
 #USER $NB_USER
 RUN easy_install request
-RUN echo "test"
-RUN conda install xmltodict scikit-image imageio netCDF4 tqdm numpy utm matplotlib pandas ipywidgets tornado=5.1.1 gdal -y
+RUN conda update -n base conda
+RUN conda install xmltodict scikit-image imageio netCDF4 tqdm numpy utm matplotlib pandas ipywidgets tornado=5.1.1 gdal
 RUN jupyter nbextension enable --py --sys-prefix widgetsnbextension
 
 RUN ls

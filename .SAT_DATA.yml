@@ -65,7 +65,7 @@ topology_template:
       type: tosca.nodes.indigo.Container.Application.Docker.Chronos
       properties:
         description: 'Execute Application'
-        command: 'curl -O https://raw.githubusercontent.com/IFCA/Dockerfile_sat/master/job.sh && /bin/bash job.sh>"$REGION"_"$START_DATE"_"$END_DATE".stderr 2>&1 && mv "$REGION"_"$START_DATE"_"$END_DATE".stderr /onedata/output/"$ONEDATA_SPACE"/logs/'
+        command: 'curl -O https://raw.githubusercontent.com/IFCA/wq_sat-Dockerfile/master/job.sh && /bin/bash job.sh>"$REGION"_"$START_DATE"_"$END_DATE".stderr 2>&1 && mv "$REGION"_"$START_DATE"_"$END_DATE".stderr /onedata/output/"$ONEDATA_SPACE"/logs/'
         uris: []
         retries: 3
         environment_variables:
