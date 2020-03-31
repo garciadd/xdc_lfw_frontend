@@ -162,6 +162,8 @@ RUN adduser jovyan sudo
 RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 RUN echo 'Frontend installing...'
 RUN git clone https://github.com/extreme-datacloud/xdc_lfw_frontend
+RUN wget -o ./xdc_lfw_frontend/satellites.ipynb https://raw.githubusercontent.com/IFCA/wq_sat-Dockerfile/master/xdc_sat.ipynb
+RUN wget -o ./xdc_lfw_frontend/xdc_sat_nb.py https://raw.githubusercontent.com/IFCA/wq_sat-Dockerfile/master/xdc_sat_nb.py
 RUN chown -R jovyan:users ./xdc_lfw_frontend/*
 RUN mv ./xdc_lfw_frontend/* /home/jovyan/
 RUN mv ./xdc_lfw_frontend/.HY_MODEL.yml /home/jovyan/
