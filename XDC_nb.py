@@ -134,7 +134,7 @@ def find_dataset_type(start_date, end_date, typ, onedata_token):
 def find_models(onedata_token):
     headers = {"X-Auth-Token": onedata_token}
     url = ("https://cloud-90-147-75-163.cloud.ba.infn.it" +
-           + "/api/v3/oneprovider/spaces/17d670040b30511bc4848cab56449088")
+           "/api/v3/oneprovider/spaces/17d670040b30511bc4848cab56449088")
     r = requests.get(url, headers=headers)
     space_id = json.loads(r.content)['spaceId']
     print('Searching models')
@@ -142,8 +142,8 @@ def find_models(onedata_token):
     # onedata_cdmi_api = ("https://cloud-90-147-75-163.cloud.ba.infn.it" +
     #                     + "/cdmi/cdmi_objectid/")
     url = ("https://cloud-90-147-75-163.cloud.ba.infn.it" +
-           + "/api/v3/oneprovider/spaces/" + space_id +
-           + "/indexes/" + index_name + "/query")
+           "/api/v3/oneprovider/spaces/" + space_id +
+           "/indexes/" + index_name + "/query")
     r = requests.get(url, headers=headers)
     response = json.loads(r.content)
     return response
@@ -681,10 +681,8 @@ def menu():
     job_list = []
     for e in orchestrator_list_deployments(None):
         job_list.append(
-            'ID: ' + e['uuid'] +
-            + ' | Creation time: ' +
-            + e['creationTime'] +
-            + ' | Status: ' + e['status'])
+            'ID: %s | Creation time: %s | Status: %s' % (
+                e['uuid'], e['creationTime'], e['status']))
 
     selection_jobs = widgets.Select(
         options=job_list,
@@ -724,6 +722,8 @@ def menu():
             e['key']['region'] +
             + '/model_' + e['key']['beginDate'] +
             + '_' + e['key']['endDate'] + '/test_1_map.nc')
+    if len(opt) == 0:
+        opt.append('No models')
 
     box_layout = Layout(display='flex',
                         align_items='center',

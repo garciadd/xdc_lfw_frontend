@@ -96,8 +96,8 @@ ENV DOWNLOAD_FOLDER datasets
 WORKDIR $HOME
 
 RUN exec 3<> /etc/apt/sources.list.d/onedata.list && \
-    echo "deb [arch=amd64] http://packages.onedata.org/apt/ubuntu/xenial xenial main" >&3 && \
-    echo "deb-src [arch=amd64] http://packages.onedata.org/apt/ubuntu/xenial xenial main" >&3 && \
+    echo "deb [arch=amd64] http://packages.onedata.org/apt/ubuntu/1902 xenial main" >&3 && \
+    echo "deb-src [arch=amd64] http://packages.onedata.org/apt/ubuntu/1902 xenial main" >&3 && \
     exec 3>&-
 RUN curl http://packages.onedata.org/onedata.gpg.key | apt-key add -
 RUN apt-get update && curl http://packages.onedata.org/onedata.gpg.key | apt-key add -
@@ -114,10 +114,6 @@ RUN rm ./xdc_lfw_data/wq_modules/config.py
 RUN exec 3<> ./xdc_lfw_data/wq_modules/config.py && \
     echo "#imports apis" >&3 && \
     echo "import os" >&3 && \
-    echo "" >&3 && \
-    echo "" >&3 && \
-    echo "celery_db_user = \"root"\" >&3 && \
-    echo "celery_db_pass = \"Yorick$$355"\" >&3 && \
     echo "" >&3 && \
     echo "#onedata mode" >&3 && \
     echo "onedata_mode = 1" >&3 && \
@@ -137,7 +133,7 @@ RUN exec 3<> ./xdc_lfw_data/wq_modules/config.py && \
     echo "local_path = \"/home/jovyan/lfw_datasets\"" >&3 && \
     echo "" >&3 && \
     echo "#AEMET credentials" >&3 && \
-    echo "METEO_API_TOKEN='0NzgyOSwidXNlcklkIjoiZGQ3OWY1ZjctYTg0MC00YmFkLWJjM2YtYzYyN2NmZGJlMTZmIiwicm9sZSI6IiJ9.LMl_cKCtYi3RPwLwO7fJYZMes-bdMVR91lRFZbUSv84'" >&3 && \
+    echo "METEO_API_TOKEN='eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ2aWxsYXJyakB1bmljYW4uZXMiLCJqdGkiOiJkZDc5ZjVmNy1hODQwLTRiYWQtYmMzZi1jNjI3Y2ZkYmUxNmYiLCJpc3MiOiJBRU1FVCIsImlhdCI6MTUyMDg0NzgyOSwidXNlcklkIjoiZGQ3OWY1ZjctYTg0MC00YmFkLWJjM2YtYzYyN2NmZGJlMTZmIiwicm9sZSI6IiJ9.LMl_cKCtYi3RPwLwO7fJYZMes-bdMVR91lRFZbUSv84'" >&3 && \
     echo "" >&3 && \
     echo "METEO_API_URL='opendata.aemet.es'" >&3 && \
     echo "" >&3 && \
@@ -157,13 +153,16 @@ RUN exec 3<> ./xdc_lfw_data/wq_modules/config.py && \
 RUN chown -R jovyan:users ./xdc_lfw_data
 RUN cd ./xdc_lfw_data && \
     /opt/conda/bin/python setup.py install
-RUN apt-get install sudo oneclient -y
+RUN apt-get install sudo oneclient=19.02.0.rc2-1~xenial -y
 RUN adduser jovyan sudo
 RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 RUN echo 'Frontend installing...'
 RUN git clone https://github.com/extreme-datacloud/xdc_lfw_frontend
-RUN wget -o ./xdc_lfw_frontend/satellites.ipynb https://raw.githubusercontent.com/IFCA/wq_sat-Dockerfile/master/xdc_sat.ipynb
-RUN wget -o ./xdc_lfw_frontend/xdc_sat_nb.py https://raw.githubusercontent.com/IFCA/wq_sat-Dockerfile/master/xdc_sat_nb.py
+RUN wget -O ./xdc_lfw_frontend/satellites.ipynb https://raw.githubusercontent.com/IFCA/wq_sat-Dockerfile/master/xdc_sat.ipynb
+RUN wget -O ./xdc_lfw_frontend/xdc_sat_nb.py https://raw.githubusercontent.com/IFCA/wq_sat-Dockerfile/master/xdc_sat_nb.py
+RUN exec 3<> ./xdc_lfw_data/regions.json && \
+    echo "{'CdP':{'coordinates':{'W':-2.83 ,'S':41.82,'E':-2.67,'N':41.90}}, 'Ebro':{'coordinates':{'W': -4.132, 'S': 42.968, 'E': -3.824, 'N': 43.06}}}" >&3 && \
+    exec 3>&-
 RUN chown -R jovyan:users ./xdc_lfw_frontend/*
 RUN mv ./xdc_lfw_frontend/* /home/jovyan/
 RUN mv ./xdc_lfw_frontend/.HY_MODEL.yml /home/jovyan/
