@@ -104,7 +104,7 @@ RUN apt-get update && curl http://packages.onedata.org/onedata.gpg.key | apt-key
 #USER $NB_USER
 RUN easy_install request
 RUN conda update -n base conda
-RUN conda install xmltodict scikit-image imageio netCDF4 tqdm numpy utm matplotlib pandas ipywidgets tornado=5.1.1 gdal
+RUN conda install ipyleaflet xmltodict scikit-image imageio netCDF4 tqdm numpy utm matplotlib pandas ipywidgets tornado=5.1.1 gdal
 RUN jupyter nbextension enable --py --sys-prefix widgetsnbextension
 
 RUN ls
