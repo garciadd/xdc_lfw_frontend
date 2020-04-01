@@ -133,7 +133,7 @@ def find_dataset_type(start_date, end_date, typ, onedata_token):
 
 def find_models(onedata_token):
     headers = {"X-Auth-Token": onedata_token}
-    url = ("https://cloud-90-147-75-163.cloud.ba.infn.it" +
+    url = ("https://cloud-90-147-75-163.cloud.ba.infn.it"
            "/api/v3/oneprovider/spaces/17d670040b30511bc4848cab56449088")
     r = requests.get(url, headers=headers)
     space_id = json.loads(r.content)['spaceId']
@@ -141,9 +141,9 @@ def find_models(onedata_token):
     index_name = 'models_region_query'
     # onedata_cdmi_api = ("https://cloud-90-147-75-163.cloud.ba.infn.it" +
     #                     + "/cdmi/cdmi_objectid/")
-    url = ("https://cloud-90-147-75-163.cloud.ba.infn.it" +
-           "/api/v3/oneprovider/spaces/" + space_id +
-           "/indexes/" + index_name + "/query")
+    url = ("https://cloud-90-147-75-163.cloud.ba.infn.it"
+           "/api/v3/oneprovider/spaces/%s/indexes/%s/query" % (
+               space_id, index_name))
     r = requests.get(url, headers=headers)
     response = json.loads(r.content)
     return response
