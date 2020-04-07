@@ -160,7 +160,7 @@ RUN echo 'Frontend installing...'
 RUN git clone https://github.com/extreme-datacloud/xdc_lfw_frontend
 RUN wget -O ./xdc_lfw_frontend/satellites.ipynb https://raw.githubusercontent.com/IFCA/wq_sat-Dockerfile/master/xdc_sat.ipynb
 RUN wget -O ./xdc_lfw_frontend/xdc_sat_nb.py https://raw.githubusercontent.com/IFCA/wq_sat-Dockerfile/master/xdc_sat_nb.py
-RUN exec 3<> ./xdc_lfw_data/regions.json && \
+RUN exec 3<> /xdc_lfw_frontend/regions.json && \
     echo "{'CdP':{'coordinates':{'W':-2.83 ,'S':41.82,'E':-2.67,'N':41.90}}, 'Ebro':{'coordinates':{'W': -4.132, 'S': 42.968, 'E': -3.824, 'N': 43.06}}}" >&3 && \
     exec 3>&-
 RUN chown -R jovyan:users ./xdc_lfw_frontend/*
