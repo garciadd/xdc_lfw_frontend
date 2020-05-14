@@ -149,6 +149,92 @@ def find_models(onedata_token):
     return response
 
 
+def is_downloaded(onedata_token, filename):
+    headers = {"X-Auth-Token": onedata_token}
+    url = ("https://cloud-90-147-75-163.cloud.ba.infn.it"
+           "/api/v3/oneprovider/spaces/17d670040b30511bc4848cab56449088")
+    r = requests.get(url, headers=headers)
+    space_id = json.loads(r.content)['spaceId']
+    
+    index_name = 'filename'
+    if index_name not in list_onedata_views(onedata_token):
+        create_filename_view(onedata_token)
+    # onedata_cdmi_api = ("https://cloud-90-147-75-163.cloud.ba.infn.it" +
+    #                     + "/cdmi/cdmi_objectid/")
+    url = ("https://cloud-90-147-75-163.cloud.ba.infn.it"
+           "/api/v3/oneprovider/spaces/%s/indexes/%s/query?spatial=false&stall=false" % (
+               space_id, index_name))
+    r = requests.get(url, headers=headers)
+    response = json.loads(r.content)
+    result = False
+    for e in response:
+        if filename in (e['key'][0]):
+            result = True
+    return result
+
+
+#date is a string yyyy-mm-dd
+def find_closest_date(onedata_token, date):
+    headers = {"X-Auth-Token": onedata_token}
+    seconds_since_epoch = datetime.datetime.now().timestamp()
+    seconds_since_epoch = int(seconds_since_epoch)*1000
+    space_id = "17d670040b30511bc4848cab56449088"
+    index_name = 'view_date_landsat'
+    if index_name not in list_onedata_views(onedata_token):
+        create_filename_view(onedata_token)
+    url = ("https://cloud-90-147-75-163.cloud.ba.infn.it"
+           "/api/v3/oneprovider/spaces/%s/views/%s/query?spatial=false&stall=false" % (
+               space_id, index_name))
+    r = requests.get(url, headers=headers)
+    value = ''
+    min = 999999999999999
+    for e in json.loads(r.content):
+        if min > abs(seconds_since_epoch - e['key']):
+            min = abs(seconds_since_epoch - e['key'])
+            value = e['value']
+    
+    return value
+
+def list_onedata_views(onedata_token):
+    headers = {"X-Auth-Token": onedata_token}
+    space_id = "17d670040b30511bc4848cab56449088"
+    url = ("https://cloud-90-147-75-163.cloud.ba.infn.it"
+       "/api/v3/oneprovider/spaces/%s/views/" % 
+           space_id)
+    r = requests.get(url, headers=headers)
+    return json.loads(r.content)["views"]
+
+def create_filename_view(onedata_token):
+    headers = {"X-Auth-Token": onedata_token}
+    url = ("https://cloud-90-147-75-163.cloud.ba.infn.it"
+           "/api/v3/oneprovider/spaces/17d670040b30511bc4848cab56449088")
+    r = requests.get(url, headers=headers)
+    space_id = json.loads(r.content)['spaceId']
+    data = open('views/view_filename.js','rb')
+    print('Searching models')
+    index_name = 'filename'
+    # onedata_cdmi_api = ("https://cloud-90-147-75-163.cloud.ba.infn.it" +
+    #                     + "/cdmi/cdmi_objectid/")
+    url = ("https://cloud-90-147-75-163.cloud.ba.infn.it"
+           "/api/v3/oneprovider/spaces/%s/views/%s?spatial=false" % (
+               space_id, index_name))
+    r = requests.put(url, data = data, headers = headers)
+    return r.status_code
+    
+def create_landsat_date_view(onedata_token):
+    headers = {"X-Auth-Token": onedata_token}
+    url = ("https://cloud-90-147-75-163.cloud.ba.infn.it"
+           "/api/v3/oneprovider/spaces/17d670040b30511bc4848cab56449088")
+    r = requests.get(url, headers=headers)
+    space_id = json.loads(r.content)['spaceId']
+    data = open('views/view_dates_landsat.js','rb')
+    index_name = 'view_date_landsat'
+    url = ("https://cloud-90-147-75-163.cloud.ba.infn.it"
+           "/api/v3/oneprovider/spaces/%s/views/%s?spatial=false" % (
+               space_id, index_name))
+    r = requests.put(url, data = data, headers = headers)
+    return r.status_code
+
 def check_date(start_date, end_date, meta_beginDate, meta_endDate):
     meta_start_date = parser.parse(meta_beginDate)
     meta_end_date = parser.parse(meta_endDate)
@@ -427,7 +513,6 @@ def prepare_model(start_date, end_date, region, path, onedata_token):
 
     os.rename(base_path + 'test_1.inp', base_path + 'test_old.inp')
     os.rename(base_path + 'test_1_v2.inp', base_path + 'test_1.inp')
-
     try:
         deployment_id = launch_orchestrator_job(
             'hydro', "%s/model_%s_%s/" % (
@@ -714,14 +799,8 @@ def menu():
     models = find_models(onedata_token)
     opt = []
     for e in models:
-        opt.append(
-            e['key']['region'] +
-            + '/model_' + e['key']['beginDate'] +
-            + '_' + e['key']['endDate'] + '/trim-test_1.nc')
-        opt.append(
-            e['key']['region'] +
-            + '/model_' + e['key']['beginDate'] +
-            + '_' + e['key']['endDate'] + '/test_1_map.nc')
+        opt.append("%s%s%s%s%s%s" % (e['key']['region'], '/model_', e['key']['beginDate'], '_', e['key']['endDate'], '/trim-test_1.nc'))
+        opt.append("%s%s%s%s%s%s" % (e['key']['region'], '/model_', e['key']['beginDate'], '_', e['key']['endDate'], '/test_1_map.nc'))
     if len(opt) == 0:
         opt.append('No models')
 
@@ -764,7 +843,6 @@ def menu():
     # con el modulo indicado y se muestra la info
 
     @button_model_output.on_click
-    @overload
     def model_on_click(b):
         global dataset, variables, propiedades, range_index, animacion_on
         animacion_on = False
@@ -839,6 +917,22 @@ def menu():
             value=0,
             description='Date:',
         )
+        depth_wid = widgets.IntSlider(
+        value=7,
+        min=0,
+        max=34,
+        step=1,
+        description='Layer (depth):',
+        disabled=False,
+        continuous_update=False,
+        orientation='horizontal',
+        readout=True,
+        readout_format='d'
+        )
+        button_model_output = widgets.Button(
+            description='Show model output',
+        )
+    
         drop_date.observe(date_on_change, names='value')
         drop_var.observe(variable_on_change, names='value')
         hb_3d = HBox([drop_var, drop_date, depth_wid])
