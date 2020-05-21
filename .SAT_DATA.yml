@@ -19,9 +19,14 @@ topology_template:
       description: Onezone URL
       required: yes
       
-    sat_space_name:
+    onedata_sat_space:
       type: string
-      description: Onedata space where the model is stored
+      description: Onedata space where the satellite data is stored
+      required: yes
+
+    onedata_mount_point:
+      type: string
+      description: Onedata mount point
       required: yes
     
     start_date:
@@ -72,7 +77,8 @@ topology_template:
         
           INPUT_ONEDATA_TOKEN: { get_attribute : [ input_onedata_space, token ] }
           ONEDATA_PROVIDERS: { get_input : onedata_provider }
-          ONEDATA_SPACE: { get_input: sat_space_name }
+          ONEDATA_SPACE: { get_input: onedata_sat_space }
+          ONEDATA_MOUNT_POINT: { get_input: onedata_mount_point }
           START_DATE: { get_input: start_date}
           END_DATE: { get_input: end_date}
           REGION: { get_input: region}
@@ -99,11 +105,11 @@ topology_template:
       type: tosca.nodes.indigo.OnedataSpace
       properties:
         onezone: { get_input: onedata_zone }
-        space: { get_input: sat_space_name }
+        space: { get_input: onedata_sat_space }
         
 
     output_onedata_space:
       type: tosca.nodes.indigo.OnedataSpace
       properties:
         onezone: { get_input: onedata_zone }
-        space: { get_input: sat_space_name }
+        space: { get_input: onedata_sat_space }
