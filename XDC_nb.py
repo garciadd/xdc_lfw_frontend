@@ -151,89 +151,130 @@ def find_models(onedata_token):
 
 def is_downloaded(onedata_token, filename):
     headers = {"X-Auth-Token": onedata_token}
-    url = ("https://cloud-90-147-75-163.cloud.ba.infn.it"
-           "/api/v3/oneprovider/spaces/17d670040b30511bc4848cab56449088")
+    url = ("https://vm027.pub.cloud.ifca.es"
+           "/api/v3/oneprovider/spaces/ecf6abbd4fcd6d6c9b505d5f5e82f94c")
     r = requests.get(url, headers=headers)
-    space_id = json.loads(r.content)['spaceId']
-    
+#    space_id = json.loads(r.content)['spaceId']
+    space_id= 'ecf6abbd4fcd6d6c9b505d5f5e82f94c'
     index_name = 'filename'
+
     if index_name not in list_onedata_views(onedata_token):
         create_filename_view(onedata_token)
-    # onedata_cdmi_api = ("https://cloud-90-147-75-163.cloud.ba.infn.it" +
-    #                     + "/cdmi/cdmi_objectid/")
-    url = ("https://cloud-90-147-75-163.cloud.ba.infn.it"
-           "/api/v3/oneprovider/spaces/%s/indexes/%s/query?spatial=false&stall=false" % (
+    url = ("https://vm027.pub.cloud.ifca.es"
+           "/api/v3/oneprovider/spaces/%s/views/%s/query?spatial=false&stall=false" % (
                space_id, index_name))
     r = requests.get(url, headers=headers)
     response = json.loads(r.content)
+
     result = False
-    for e in response:
-        if filename in (e['key'][0]):
-            result = True
+
+    if len(response) == 0:
+        return result
+    elif len(response) == 1:
+        response = response[0]['key']
+    elif len(response) == 2:
+        response = response[0]['key'] + response[1]['key']
+
+    if filename in response:
+        result = True
+
     return result
 
 
 #date is a string yyyy-mm-dd
-def find_closest_date(onedata_token, date):
+def find_closest_date(onedata_token, date, region):
+
     headers = {"X-Auth-Token": onedata_token}
-    seconds_since_epoch = datetime.datetime.now().timestamp()
+
+    date_time_obj = datetime.datetime.strptime(date, '%Y-%m-%d')
+    seconds_since_epoch = date_time_obj.timestamp()
     seconds_since_epoch = int(seconds_since_epoch)*1000
-    space_id = "17d670040b30511bc4848cab56449088"
+
+    space_id = 'ecf6abbd4fcd6d6c9b505d5f5e82f94c'
+
     index_name = 'view_date_landsat'
     if index_name not in list_onedata_views(onedata_token):
-        create_filename_view(onedata_token)
-    url = ("https://cloud-90-147-75-163.cloud.ba.infn.it"
+        create_landsat_date_view(onedata_token)
+
+    url = ("https://vm027.pub.cloud.ifca.es"
            "/api/v3/oneprovider/spaces/%s/views/%s/query?spatial=false&stall=false" % (
                space_id, index_name))
     r = requests.get(url, headers=headers)
     value = ''
     min = 999999999999999
     for e in json.loads(r.content):
-        if min > abs(seconds_since_epoch - e['key']):
-            min = abs(seconds_since_epoch - e['key'])
-            value = e['value']
-    
+        if e['value'][0] == region:
+            if min > abs(seconds_since_epoch - e['key']):
+                min = abs(seconds_since_epoch - e['key'])
+                value = e['value'][1]
+
     return value
+
 
 def list_onedata_views(onedata_token):
     headers = {"X-Auth-Token": onedata_token}
-    space_id = "17d670040b30511bc4848cab56449088"
-    url = ("https://cloud-90-147-75-163.cloud.ba.infn.it"
-       "/api/v3/oneprovider/spaces/%s/views/" % 
+    space_id = "ecf6abbd4fcd6d6c9b505d5f5e82f94c"
+    url = ("https://vm027.pub.cloud.ifca.es"
+       "/api/v3/oneprovider/spaces/%s/views/" %
            space_id)
     r = requests.get(url, headers=headers)
     return json.loads(r.content)["views"]
 
+
 def create_filename_view(onedata_token):
     headers = {"X-Auth-Token": onedata_token}
-    url = ("https://cloud-90-147-75-163.cloud.ba.infn.it"
-           "/api/v3/oneprovider/spaces/17d670040b30511bc4848cab56449088")
+    url = ("https://vm027.pub.cloud.ifca.es"
+           "/api/v3/oneprovider/spaces/ecf6abbd4fcd6d6c9b505d5f5e82f94c")
     r = requests.get(url, headers=headers)
-    space_id = json.loads(r.content)['spaceId']
-    data = open('views/view_filename.js','rb')
+#    space_id = json.loads(r.content)['spaceId']
+    space_id= 'ecf6abbd4fcd6d6c9b505d5f5e82f94c'
+    data = open('/wq_sat/views/view_filename.js','rb')
+    print ('data_ {}'.format(data))
     print('Searching models')
     index_name = 'filename'
-    # onedata_cdmi_api = ("https://cloud-90-147-75-163.cloud.ba.infn.it" +
-    #                     + "/cdmi/cdmi_objectid/")
-    url = ("https://cloud-90-147-75-163.cloud.ba.infn.it"
+    url = ("https://vm027.pub.cloud.ifca.es"
            "/api/v3/oneprovider/spaces/%s/views/%s?spatial=false" % (
                space_id, index_name))
     r = requests.put(url, data = data, headers = headers)
     return r.status_code
-    
+
+
 def create_landsat_date_view(onedata_token):
     headers = {"X-Auth-Token": onedata_token}
-    url = ("https://cloud-90-147-75-163.cloud.ba.infn.it"
-           "/api/v3/oneprovider/spaces/17d670040b30511bc4848cab56449088")
+    url = ("https://vm027.pub.cloud.ifca.es"
+           "/api/v3/oneprovider/spaces/ecf6abbd4fcd6d6c9b505d5f5e82f94c")
     r = requests.get(url, headers=headers)
-    space_id = json.loads(r.content)['spaceId']
-    data = open('views/view_dates_landsat.js','rb')
+    space_id = 'ecf6abbd4fcd6d6c9b505d5f5e82f94c'
+    data = open('/wq_sat/views/view_dates_landsat.js','rb')
     index_name = 'view_date_landsat'
-    url = ("https://cloud-90-147-75-163.cloud.ba.infn.it"
+    url = ("https://vm027.pub.cloud.ifca.es"
            "/api/v3/oneprovider/spaces/%s/views/%s?spatial=false" % (
                space_id, index_name))
     r = requests.put(url, data = data, headers = headers)
     return r.status_code
+
+
+def model_temp(onedata_token, date, region):
+
+    l8_file = find_closest_date(onedata_token, date, region)
+    file_path = os.path.join(config.datasets_path, region, l8_file)
+    dataset= Dataset(file_path, 'r', format='NETCDF4_CLASSIC')
+    variables = dataset.variables
+
+    G = dataset.variables['SRB3'][:]
+    NIR = dataset.variables['SRB5'][:]
+
+    mndwi = (G - NIR) / (G + NIR)
+    mndwi[mndwi <=0] = np.nan
+    mndwi = np.ma.masked_where(condition=np.isnan(mndwi), a=mndwi)
+
+    B11 = dataset.variables['SRB11'][:]
+    B11[mndwi.mask] = np.nan
+    B11 = np.ma.masked_where(condition=np.isnan(B11), a=B11)
+    Temp = np.mean(B11) - 273.15
+
+    return Temp
+
 
 def check_date(start_date, end_date, meta_beginDate, meta_endDate):
     meta_start_date = parser.parse(meta_beginDate)
